@@ -81,7 +81,7 @@
         <div id="add-package-form-container" class="tool-card hidden" style="margin-bottom: 2rem;">
           <h3 id="pkg-form-title">Add New Package</h3>
           <form id="add-package-form">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-grid">
               <div class="form-group">
                 <label>Title</label>
                 <input type="text" id="pkg-title" required placeholder="e.g., One-Day Essential">
@@ -96,7 +96,7 @@
               </div>
               <div class="form-group">
                 <label>Tone (Main Category)</label>
-                <select id="pkg-tone" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: white;">
+                <select id="pkg-tone">
                   <option value="wedding">wedding</option>
                   <option value="portrait">portrait</option>
                   <option value="streaming">streaming</option>
@@ -105,7 +105,7 @@
               </div>
               <div class="form-group">
                 <label>Location (Optional - for Birthday/Portrait)</label>
-                <select id="pkg-location" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: white;">
+                <select id="pkg-location">
                   <option value="">None</option>
                   <option value="In-studio">In-studio</option>
                   <option value="Location">Location</option>
@@ -118,7 +118,7 @@
             </div>
             <div class="form-group">
               <label>Bullets (One per line)</label>
-              <textarea id="pkg-bullets" rows="4" required placeholder="6 hours coverage&#10;1 photographer&#10;150 basic edited images" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: white; font-family: inherit;"></textarea>
+              <textarea id="pkg-bullets" rows="4" required placeholder="6 hours coverage&#10;1 photographer&#10;150 basic edited images"></textarea>
             </div>
             <div class="form-group">
               <label>Tags (Comma-separated)</label>
@@ -128,7 +128,7 @@
               <input type="checkbox" id="pkg-featured" style="width: auto;">
               <label for="pkg-featured" style="margin-bottom: 0;">Featured / Popular Package</label>
             </div>
-            <div style="display: flex; gap: 1rem;">
+            <div class="form-actions">
               <button type="submit" id="pkg-save-btn" class="button primary">Save Package</button>
               <button type="button" id="cancel-add-pkg-btn" class="button">Cancel</button>
             </div>
