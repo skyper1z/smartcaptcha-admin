@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Captcha Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div id="auth-container" class="admin-auth">
+    <div class="auth-box">
+      <h2>Admin Login</h2>
+      <p>Log in to manage your packages and gallery.</p>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit" class="button primary" style="width: 100%; justify-content: center;">Login</button>
+        <p id="auth-error" class="error-text hidden"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="dashboard-container" class="admin-dashboard hidden">
+    <header class="admin-header">
+      <div class="brand">Smart Captcha Admin</div>
+      <button id="logout-btn" class="button">Logout</button>
+    </header>
+
+    <main class="admin-main">
+      <div class="tabs admin-tabs">
+        <button class="tab active" data-target="gallery">Gallery</button>
+        <button class="tab" data-target="packages">Packages</button>
+        <button class="tab" data-target="settings">Settings / Tools</button>
+      </div>
+
+      <!-- STATISTICS DASHBOARD -->
+      <div class="admin-stats-row">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total-packages">0</div>
+          <div class="stat-label">Total Packages</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total-images">0</div>
+          <div class="stat-label">Total Gallery Images</div>
+        </div>
+      </div>
+
+      <!-- GALLERY TAB -->
+      <section id="gallery-tab" class="admin-section active">
+        <div class="section-heading split">
+          <h2>Gallery Images</h2>
+          <div class="actions">
+            <label class="button primary">
+              Upload New Image
+              <input type="file" id="upload-gallery-input" accept="image/*" hidden>
+            </label>
+          </div>
+        </div>
+        <p id="gallery-status" class="status-text"></p>
+        <div id="admin-gallery-grid" class="admin-grid"></div>
+      </section>
+
+      <!-- PACKAGES TAB -->
+      <section id="packages-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>Manage Packages</h2>
+          <button class="button primary" id="add-package-btn">Add Package</button>
+        </div>
+
+        <!-- Add Package Form (Hidden by default) -->
+        <div id="add-package-form-container" class="tool-card hidden" style="margin-bottom: 2rem;">
+          <h3 id="pkg-form-title">Add New Package</h3>
+          <form id="add-package-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="pkg-title" required placeholder="e.g., One-Day Essential">
+              </div>
+              <div class="form-group">
+                <label>Category</label>
+                <input type="text" id="pkg-category" required placeholder="e.g., Photo + video">
+              </div>
+              <div class="form-group">
+                <label>Price</label>
+                <input type="text" id="pkg-price" required placeholder="e.g., GHS 6,500">
+              </div>
+              <div class="form-group">
+                <label>Tone (Main Category)</label>
+                <select id="pkg-tone" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: white;">
+                  <option value="wedding">wedding</option>
+                  <option value="portrait">portrait</option>
+                  <option value="streaming">streaming</option>
+                  <option value="funeral">funeral</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Location (Optional - for Birthday/Portrait)</label>
+                <select id="pkg-location" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: white;">
+                  <option value="">None</option>
+                  <option value="In-studio">In-studio</option>
+                  <option value="Location">Location</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Photo URL (Optional)</label>
+                <input type="text" id="pkg-photo" placeholder="e.g., assets/photos/wedding-couple.jpg">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Bullets (One per line)</label>
+              <textarea id="pkg-bullets" rows="4" required placeholder="6 hours coverage&#10;1 photographer&#10;150 basic edited images" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: white; font-family: inherit;"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Tags (Comma-separated)</label>
+              <input type="text" id="pkg-tags" placeholder="e.g., 6 hours, 10 retouched, 300+ JPEGs">
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+              <input type="checkbox" id="pkg-featured" style="width: auto;">
+              <label for="pkg-featured" style="margin-bottom: 0;">Featured / Popular Package</label>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+              <button type="submit" id="pkg-save-btn" class="button primary">Save Package</button>
+              <button type="button" id="cancel-add-pkg-btn" class="button">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="admin-packages-list" class="admin-list"></div>
+      </section>
+
+      <!-- SETTINGS TAB -->
+      <section id="settings-tab" class="admin-section hidden">
+        <div class="section-heading">
+          <h2>Admin Tools</h2>
+        </div>
+        <div class="tool-card">
+          <h3>Seed Initial Data</h3>
+          <p>Click this button once to automatically copy all your current hardcoded packages and gallery images into your new Supabase database.</p>
+          <button class="button primary" id="seed-data-btn">Run Seed Script</button>
+          <p id="seed-status" class="status-text"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="supabase-client.js"></script>
+  <!-- Load the default data so the seed script can use it -->
+  <script src="packages-data.js"></script>
+  <script src="admin.js?v=6"></script>
+</body>
+</html>

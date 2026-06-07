@@ -1,0 +1,3 @@
+const _supabaseUrl = 'https://kcatufanwxhcoagyeskf.supabase.co';
+const _supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjYXR1ZmFud3hoY29hZ3llc2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDUwNDcsImV4cCI6MjA5NjQyMTA0N30.l9tXgvvRt6AKQg3lmrk5WUNCEHPr9xu-CisV0uk-Jis';
+window.supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseAnonKey);
