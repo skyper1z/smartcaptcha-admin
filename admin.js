@@ -62,6 +62,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     dashboardContainer.classList.remove('hidden');
     loadGallery();
     loadPackages();
+    loadEventTypes();
+    setupEventTypesRealtime();
   }
 
   function showLogin() {
@@ -497,6 +499,268 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       restoreGalleryBtn.disabled = false;
+    });
+  }
+
+  // -----------------------------------------
+  // EVENT TYPES MANAGER & PRESETS
+  // -----------------------------------------
+  const ICON_PRESETS = {
+    star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>`,
+    heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+    camera: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+    video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`,
+    music: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+    calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+    people: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+  };
+
+  const defaultEventTypes = [
+    {
+      key: "wedding",
+      label: "Wedding",
+      icon: ICON_PRESETS.heart,
+      tabs: ["Photo & Video", "Live Streaming", "Drone"]
+    },
+    {
+      key: "funeral",
+      label: "Funeral",
+      icon: ICON_PRESETS.people,
+      tabs: ["Coverage", "Live Streaming", "Full Package"]
+    },
+    {
+      key: "engagement",
+      label: "Engagement / Intro",
+      icon: ICON_PRESETS.heart,
+      tabs: ["Classic", "Premium", "Luxury"]
+    },
+    {
+      key: "naming",
+      label: "Naming Ceremony",
+      icon: ICON_PRESETS.calendar,
+      tabs: ["Essential", "Classic", "Premium"]
+    },
+    {
+      key: "corporate",
+      label: "Corporate Event",
+      icon: ICON_PRESETS.people,
+      tabs: ["Conference", "Launch & Party", "Award Night"]
+    },
+    {
+      key: "concert",
+      label: "Concert / Live Show",
+      icon: ICON_PRESETS.music,
+      tabs: ["Coverage", "Streaming", "Full Production"]
+    }
+  ];
+
+  let loadedEventTypes = [];
+
+  async function loadEventTypes() {
+    if (!window.supabaseClient) return;
+
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('event_types')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.warn("Could not fetch event types (table may not exist yet):", error.message);
+        loadedEventTypes = defaultEventTypes;
+        populateToneDropdown();
+        renderEventTypesList(true); // read-only fallback view
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.log("event_types table is empty. Auto-seeding default event types...");
+        const { error: seedErr } = await window.supabaseClient.from('event_types').insert(defaultEventTypes);
+        if (seedErr) {
+          console.error("Error auto-seeding event types:", seedErr.message);
+        } else {
+          const { data: refetched } = await window.supabaseClient
+            .from('event_types')
+            .select('*')
+            .order('created_at', { ascending: true });
+          if (refetched) {
+            loadedEventTypes = refetched;
+          }
+        }
+      } else {
+        loadedEventTypes = data;
+      }
+
+      populateToneDropdown();
+      renderEventTypesList(false);
+    } catch (err) {
+      console.error("Error in loadEventTypes:", err);
+      loadedEventTypes = defaultEventTypes;
+      populateToneDropdown();
+      renderEventTypesList(true);
+    }
+  }
+
+  function populateToneDropdown() {
+    const select = document.getElementById('pkg-tone');
+    if (!select) return;
+
+    const savedVal = select.value;
+
+    select.innerHTML = `
+      <optgroup label="Events">
+        ${loadedEventTypes.map(evt => `<option value="${evt.key}">${evt.label}</option>`).join('')}
+      </optgroup>
+      <optgroup label="Standalone">
+        <option value="portrait">Portraits</option>
+        <option value="streaming">Streaming</option>
+      </optgroup>
+    `;
+
+    if (savedVal && Array.from(select.options).some(opt => opt.value === savedVal)) {
+      select.value = savedVal;
+    }
+  }
+
+  function renderEventTypesList(isFallback = false) {
+    const listContainer = document.getElementById('admin-event-types-list');
+    if (!listContainer) return;
+
+    let html = '';
+
+    if (isFallback) {
+      html += `
+        <div style="background: rgba(220, 100, 100, 0.1); border: 1px solid rgba(220, 100, 100, 0.3); padding: 1rem; border-radius: 6px; color: #ff8888; font-size: 0.9rem; margin-bottom: 1rem;">
+          <strong>⚠️ Notice:</strong> The <code>event_types</code> table was not found in your database. 
+          Please run the SQL migration script from the implementation plan in your Supabase dashboard to enable dynamic events. 
+          Currently displaying hardcoded event types (read-only).
+        </div>
+      `;
+    }
+
+    if (loadedEventTypes.length === 0) {
+      html += '<p>No event types defined.</p>';
+      listContainer.innerHTML = html;
+      return;
+    }
+
+    html += loadedEventTypes.map(evt => {
+      const isSystemEvent = ['wedding', 'funeral', 'portrait', 'streaming'].includes(evt.key);
+      const deleteBtn = isFallback 
+        ? '' 
+        : `<button class="button danger delete-evt-btn" data-key="${evt.key}" ${isSystemEvent ? 'disabled title="Core system events cannot be deleted"' : ''}>Delete</button>`;
+
+      return `
+        <div class="admin-item" style="padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px;">
+          <div>
+            <span style="font-size: 1.2rem; margin-right: 0.5rem; display: inline-flex; align-items: center; vertical-align: middle; width: 20px; height: 20px; color: var(--gold); fill: currentColor;">
+              ${evt.icon || '📅'}
+            </span>
+            <strong style="font-size: 1rem; color: #fff; margin-left: 0.5rem; vertical-align: middle;">${evt.label}</strong> 
+            <code style="color: var(--gold); font-size: 0.8rem; margin-left: 0.5rem; background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; vertical-align: middle;">${evt.key}</code>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem;">Sub-tabs: ${Array.isArray(evt.tabs) ? evt.tabs.join(', ') : evt.tabs}</div>
+          </div>
+          <div>
+            ${deleteBtn}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listContainer.innerHTML = html;
+
+    // Attach delete listeners
+    if (!isFallback) {
+      listContainer.querySelectorAll('.delete-evt-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const key = btn.dataset.key;
+          if (!confirm(`Are you sure you want to delete the event type "${key}"? All packages linked to this event type will lose their categorisation.`)) return;
+
+          const { error } = await window.supabaseClient
+            .from('event_types')
+            .delete()
+            .eq('key', key);
+
+          if (error) {
+            alert('Failed to delete event type: ' + error.message);
+          } else {
+            loadEventTypes();
+          }
+        });
+      });
+    }
+  }
+
+  function setupEventTypesRealtime() {
+    if (!window.supabaseClient) return;
+    window.supabaseClient
+      .channel('public:event_types_admin')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'event_types' }, () => {
+        loadEventTypes();
+      })
+      .subscribe();
+  }
+
+  const addEvtForm = document.getElementById('add-event-type-form');
+  const evtIconPreset = document.getElementById('evt-icon-preset');
+  const evtCustomIconGroup = document.getElementById('evt-custom-icon-group');
+  const evtStatus = document.getElementById('event-type-status');
+
+  if (evtIconPreset && evtCustomIconGroup) {
+    evtIconPreset.addEventListener('change', () => {
+      if (evtIconPreset.value === 'custom') {
+        evtCustomIconGroup.classList.remove('hidden');
+      } else {
+        evtCustomIconGroup.classList.add('hidden');
+      }
+    });
+  }
+
+  if (addEvtForm) {
+    addEvtForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const label = document.getElementById('evt-label').value.trim();
+      const key = document.getElementById('evt-key').value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const tabsRaw = document.getElementById('evt-tabs').value;
+      const preset = evtIconPreset.value;
+      
+      let icon = '';
+      if (preset === 'custom') {
+        icon = document.getElementById('evt-custom-icon').value.trim();
+      } else {
+        icon = ICON_PRESETS[preset] || ICON_PRESETS.star;
+      }
+
+      const tabs = tabsRaw.split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+      if (!label || !key || tabs.length === 0) {
+        alert('Please fill out all required fields.');
+        return;
+      }
+
+      evtStatus.textContent = 'Saving event type...';
+      
+      try {
+        const { error } = await window.supabaseClient
+          .from('event_types')
+          .insert([{ key, label, icon, tabs }]);
+
+        if (error) {
+          throw error;
+        }
+
+        evtStatus.textContent = '✅ Event type added successfully!';
+        addEvtForm.reset();
+        if (evtCustomIconGroup) evtCustomIconGroup.classList.add('hidden');
+        setTimeout(() => evtStatus.textContent = '', 3000);
+        loadEventTypes();
+      } catch (err) {
+        evtStatus.textContent = '❌ Error: ' + err.message;
+        console.error(err);
+      }
     });
   }
 

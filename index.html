@@ -97,18 +97,7 @@
               <div class="form-group">
                 <label>Tone (Main Category / Event Type)</label>
                 <select id="pkg-tone">
-                  <optgroup label="Events">
-                    <option value="wedding">Wedding</option>
-                    <option value="funeral">Funeral</option>
-                    <option value="engagement">Engagement / Intro</option>
-                    <option value="naming">Naming Ceremony</option>
-                    <option value="corporate">Corporate Event</option>
-                    <option value="concert">Concert / Live Show</option>
-                  </optgroup>
-                  <optgroup label="Standalone">
-                    <option value="portrait">Portraits</option>
-                    <option value="streaming">Streaming</option>
-                  </optgroup>
+                  <!-- Dynamically populated from Supabase event_types -->
                 </select>
               </div>
               <div class="form-group">
@@ -168,6 +157,54 @@
           <p>Use this if your gallery images disappeared from the database. It scans your Supabase Storage bucket and re-links any images that are missing from the gallery table — without deleting anything.</p>
           <button class="button primary" id="restore-gallery-btn">Restore Gallery Images</button>
           <p id="restore-status" class="status-text"></p>
+        </div>
+
+        <div class="tool-card" style="margin-top: 1.5rem;">
+          <h3>📅 Manage Event Types</h3>
+          <p>Add, edit or delete dynamic event categories showing on your main website. When you add a new event type, it will show up under the Events tab on the main page and in the "Tone" selector when adding packages.</p>
+          
+          <div id="admin-event-types-list" class="admin-list" style="margin: 1rem 0;">
+            <!-- Render current event types here -->
+          </div>
+
+          <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--gold);">Add New Event Type</h4>
+          <form id="add-event-type-form" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+              <div class="form-group">
+                <label>Event Name / Label</label>
+                <input type="text" id="evt-label" required placeholder="e.g., Engagement, Graduation">
+              </div>
+              <div class="form-group">
+                <label>Unique URL Key <span style="font-size:0.75rem; color:var(--muted); font-weight:normal;">(lowercase, letters/hyphens only)</span></label>
+                <input type="text" id="evt-key" required placeholder="e.g., engagement, graduation">
+              </div>
+              <div class="form-group">
+                <label>Sub-Tabs <span style="font-size:0.75rem; color:var(--muted); font-weight:normal;">(comma-separated)</span></label>
+                <input type="text" id="evt-tabs" required placeholder="e.g., Photo &amp; Video, Live Streaming">
+              </div>
+              <div class="form-group">
+                <label>Icon Choice (Preset)</label>
+                <select id="evt-icon-preset">
+                  <option value="star">Star / Popular</option>
+                  <option value="heart">Heart / Love / Wedding</option>
+                  <option value="camera">Camera</option>
+                  <option value="video">Video Camera</option>
+                  <option value="music">Music / Concert</option>
+                  <option value="calendar">Calendar / Event</option>
+                  <option value="people">People / Corporate</option>
+                  <option value="custom">Custom SVG Code</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group hidden" id="evt-custom-icon-group">
+              <label>Custom Icon SVG Code</label>
+              <textarea id="evt-custom-icon" rows="3" placeholder='e.g., <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>'></textarea>
+            </div>
+            <div>
+              <button type="submit" class="button primary" id="add-evt-btn">Add Event Type</button>
+            </div>
+            <p id="event-type-status" class="status-text"></p>
+          </form>
         </div>
       </section>
 
