@@ -134,7 +134,51 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.addEventListener('click', async (e) => {
         if (!confirm('Delete this image?')) return;
         const id = e.target.dataset.id;
-        await window.supabaseClient.from('gallery_images').delete().eq('id', id);
+
+        // 1. Get the image record to find its source URL
+        const { data: imgData, error: fetchErr } = await window.supabaseClient
+          .from('gallery_images')
+          .select('src')
+          .eq('id', id)
+          .single();
+
+        if (!fetchErr && imgData && imgData.src) {
+          // Extract the storage path from the public URL
+          let filePath = null;
+          try {
+            const url = new URL(imgData.src);
+            const parts = url.pathname.split('/public/media/');
+            if (parts.length > 1) {
+              filePath = decodeURIComponent(parts[1]);
+            }
+          } catch (urlErr) {
+            // Fallback if URL is relative or different format
+            if (imgData.src.includes('/public/media/')) {
+              filePath = decodeURIComponent(imgData.src.split('/public/media/')[1]);
+            } else if (imgData.src.includes('/media/')) {
+              const idx = imgData.src.indexOf('/media/');
+              filePath = decodeURIComponent(imgData.src.substring(idx + 7));
+            }
+          }
+
+          if (filePath) {
+            // 2. Delete the file from the Supabase Storage bucket ('media')
+            const { error: storageErr } = await window.supabaseClient.storage
+              .from('media')
+              .remove([filePath]);
+            
+            if (storageErr) {
+              console.warn('Could not delete image from storage:', storageErr.message);
+            }
+          }
+        }
+
+        // 3. Delete from database
+        const { error: dbErr } = await window.supabaseClient.from('gallery_images').delete().eq('id', id);
+        if (dbErr) {
+          alert('Failed to delete from database: ' + dbErr.message);
+        }
+        
         loadGallery();
       });
     });
