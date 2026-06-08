@@ -358,18 +358,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const seedStatus = document.getElementById('seed-status');
 
   seedBtn.addEventListener('click', async () => {
-    if (!confirm('Are you sure? This will insert all your hardcoded packages and gallery data into Supabase.')) return;
+    if (!confirm('This will clear and re-seed all packages with the latest data. Your gallery images will NOT be affected. Continue?')) return;
     
-    seedStatus.textContent = 'Migrating packages...';
+    seedStatus.textContent = 'Seeding packages...';
     seedBtn.disabled = true;
 
     try {
-      // 0. Clear existing records to avoid duplicates
-      seedStatus.textContent = 'Clearing existing records...';
+      // Clear ONLY packages — gallery images are never touched by seed
+      seedStatus.textContent = 'Clearing existing packages...';
       await window.supabaseClient.from('packages').delete().not('id', 'is', null);
-      await window.supabaseClient.from('gallery_images').delete().not('id', 'is', null);
 
-      // 1. Migrate Packages (from window.defaultPackages in script.js)
+      // Insert all packages from window.defaultPackages
       let packagesToInsert = [];
       for (const [mainCat, items] of Object.entries(window.defaultPackages)) {
         items.forEach(p => {
@@ -389,62 +388,73 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (packagesToInsert.length > 0) {
+        seedStatus.textContent = `Inserting ${packagesToInsert.length} packages...`;
         const { error: pkgErr } = await window.supabaseClient.from('packages').insert(packagesToInsert);
         if (pkgErr) throw pkgErr;
       }
 
-      // 2. Migrate Gallery (from window.legacyGalleryData)
-      seedStatus.textContent = 'Migrating gallery images to storage...';
-      if (window.legacyGalleryData && window.legacyGalleryData.length > 0) {
-        const migratedGallery = [];
-        for (let i = 0; i < window.legacyGalleryData.length; i++) {
-          const item = window.legacyGalleryData[i];
-          const filename = item.src.split('/').pop();
-          seedStatus.textContent = `Uploading gallery image ${i + 1}/${window.legacyGalleryData.length}: ${filename}...`;
-          
-          try {
-            // Fetch file from local server
-            const res = await fetch('smartcaptcha/' + filename);
-            if (!res.ok) throw new Error(`Could not fetch smartcaptcha/${filename}`);
-            const blob = await res.blob();
-            
-            // Upload to Supabase Storage
-            const filePath = `gallery/${filename}`;
-            const { error: uploadError } = await window.supabaseClient.storage.from('media').upload(filePath, blob, { upsert: true });
-            if (uploadError) throw uploadError;
-            
-            // Get Public URL
-            const { data: { publicUrl } } = window.supabaseClient.storage.from('media').getPublicUrl(filePath);
-            
-            migratedGallery.push({
-              src: publicUrl,
-              type: item.type || 'image',
-              category: item.category || 'image'
-            });
-          } catch (uploadErr) {
-            console.error(`Failed to migrate ${filename}:`, uploadErr);
-            // Fallback to legacy path if upload fails
-            migratedGallery.push(item);
-          }
-        }
-
-        // Insert new records with public URLs into Supabase
-        seedStatus.textContent = 'Saving gallery to database...';
-        if (migratedGallery.length > 0) {
-          const { error: galErr } = await window.supabaseClient.from('gallery_images').insert(migratedGallery);
-          if (galErr) throw galErr;
-        }
-      }
-
-      seedStatus.textContent = 'Migration Complete! You can now use the dashboard to manage content.';
-      loadGallery();
+      seedStatus.textContent = `✅ Done! ${packagesToInsert.length} packages seeded. Gallery images untouched.`;
       loadPackages();
     } catch (err) {
-      seedStatus.textContent = 'Error during migration: ' + err.message;
+      seedStatus.textContent = '❌ Error: ' + err.message;
       console.error(err);
     }
-    
+
     seedBtn.disabled = false;
   });
 
+  // RESTORE GALLERY FROM STORAGE
+  // Re-links any image files already in Supabase Storage back into the gallery_images table.
+  const restoreGalleryBtn = document.getElementById('restore-gallery-btn');
+  const restoreStatus = document.getElementById('restore-status');
+
+  if (restoreGalleryBtn) {
+    restoreGalleryBtn.addEventListener('click', async () => {
+      if (!confirm('This will scan your Supabase Storage and re-add any gallery images that are missing from the database. Continue?')) return;
+
+      restoreStatus.textContent = 'Scanning storage for images...';
+      restoreGalleryBtn.disabled = true;
+
+      try {
+        // List all files in the gallery/ folder of the media bucket
+        const { data: files, error: listErr } = await window.supabaseClient.storage.from('media').list('gallery', { limit: 500 });
+        if (listErr) throw listErr;
+
+        if (!files || files.length === 0) {
+          restoreStatus.textContent = 'No files found in storage.';
+          restoreGalleryBtn.disabled = false;
+          return;
+        }
+
+        // Fetch existing DB records to avoid duplicates
+        const { data: existing } = await window.supabaseClient.from('gallery_images').select('src');
+        const existingUrls = new Set((existing || []).map(r => r.src));
+
+        const toInsert = [];
+        for (const file of files) {
+          if (file.name === '.emptyFolderPlaceholder') continue;
+          const { data: { publicUrl } } = window.supabaseClient.storage.from('media').getPublicUrl(`gallery/${file.name}`);
+          if (!existingUrls.has(publicUrl)) {
+            toInsert.push({ src: publicUrl, type: 'image', category: 'image' });
+          }
+        }
+
+        if (toInsert.length === 0) {
+          restoreStatus.textContent = '✅ All storage images are already in the database.';
+        } else {
+          const { error: insErr } = await window.supabaseClient.from('gallery_images').insert(toInsert);
+          if (insErr) throw insErr;
+          restoreStatus.textContent = `✅ Restored ${toInsert.length} image(s) from storage.`;
+          loadGallery();
+        }
+      } catch (err) {
+        restoreStatus.textContent = '❌ Error: ' + err.message;
+        console.error(err);
+      }
+
+      restoreGalleryBtn.disabled = false;
+    });
+  }
+
 });
+

@@ -155,13 +155,22 @@
         <div class="section-heading">
           <h2>Admin Tools</h2>
         </div>
+
         <div class="tool-card">
-          <h3>Seed Initial Data</h3>
-          <p>Click this button once to automatically copy all your current hardcoded packages and gallery images into your new Supabase database.</p>
+          <h3>Seed Packages</h3>
+          <p>Re-seeds all packages from the hardcoded defaults. <strong>Your gallery images are never affected.</strong></p>
           <button class="button primary" id="seed-data-btn">Run Seed Script</button>
           <p id="seed-status" class="status-text"></p>
         </div>
+
+        <div class="tool-card" style="margin-top: 1.5rem;">
+          <h3>🔄 Restore Gallery from Storage</h3>
+          <p>Use this if your gallery images disappeared from the database. It scans your Supabase Storage bucket and re-links any images that are missing from the gallery table — without deleting anything.</p>
+          <button class="button primary" id="restore-gallery-btn">Restore Gallery Images</button>
+          <p id="restore-status" class="status-text"></p>
+        </div>
       </section>
+
     </main>
   </div>
 
