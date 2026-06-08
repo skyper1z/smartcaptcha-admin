@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  let isDashboardVisible = false;
   const authContainer = document.getElementById('auth-container');
   const dashboardContainer = document.getElementById('dashboard-container');
   const loginForm = document.getElementById('login-form');
@@ -36,10 +35,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  let lastLoadedSessionId = null;
+
+  async function refreshDashboardData(session) {
+    if (!session) return;
+    const sessionId = session.access_token;
+    if (lastLoadedSessionId === sessionId) return;
+    lastLoadedSessionId = sessionId;
+
+    loadGallery();
+    loadPackages();
+    loadEventTypes();
+  }
+
   // Auth Listener
   window.supabaseClient.auth.onAuthStateChange((event, session) => {
     if (session) {
       showDashboard();
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        refreshDashboardData(session);
+      }
     } else {
       showLogin();
     }
@@ -49,6 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   if (session) {
     showDashboard();
+    refreshDashboardData(session);
   } else {
     showLogin();
   }
@@ -59,20 +75,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   function showDashboard() {
-    if (isDashboardVisible) return;
-    isDashboardVisible = true;
     authContainer.classList.add('hidden');
     dashboardContainer.classList.remove('hidden');
-    loadGallery();
-    loadPackages();
-    loadEventTypes();
     setupEventTypesRealtime();
   }
 
   function showLogin() {
-    isDashboardVisible = false;
     authContainer.classList.remove('hidden');
     dashboardContainer.classList.add('hidden');
+    lastLoadedSessionId = null; // reset
   }
 
   // Tab Switching
