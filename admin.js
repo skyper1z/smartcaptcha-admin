@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  let isDashboardVisible = false;
   const authContainer = document.getElementById('auth-container');
   const dashboardContainer = document.getElementById('dashboard-container');
   const loginForm = document.getElementById('login-form');
@@ -56,8 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   logoutBtn.addEventListener('click', async () => {
     await window.supabaseClient.auth.signOut();
   });
-
-  let isDashboardVisible = false;
 
   function showDashboard() {
     if (isDashboardVisible) return;
