@@ -95,13 +95,25 @@
                 <input type="text" id="pkg-price" required placeholder="e.g., GHS 6,500">
               </div>
               <div class="form-group">
-                <label>Tone (Main Category)</label>
+                <label>Tone (Main Category / Event Type)</label>
                 <select id="pkg-tone">
-                  <option value="wedding">wedding</option>
-                  <option value="portrait">portrait</option>
-                  <option value="streaming">streaming</option>
-                  <option value="funeral">funeral</option>
+                  <optgroup label="Events">
+                    <option value="wedding">Wedding</option>
+                    <option value="funeral">Funeral</option>
+                    <option value="engagement">Engagement / Intro</option>
+                    <option value="naming">Naming Ceremony</option>
+                    <option value="corporate">Corporate Event</option>
+                    <option value="concert">Concert / Live Show</option>
+                  </optgroup>
+                  <optgroup label="Standalone">
+                    <option value="portrait">Portraits</option>
+                    <option value="streaming">Streaming</option>
+                  </optgroup>
                 </select>
+              </div>
+              <div class="form-group">
+                <label>Event Sub-Tab <small style="color:var(--muted); font-weight:400;">(for Events tab — e.g. "Photo & Video", "Live Streaming", "Coverage")</small></label>
+                <input type="text" id="pkg-tab" placeholder="e.g., Photo &amp; Video">
               </div>
               <div class="form-group">
                 <label>Location (Optional - for Birthday/Portrait)</label>

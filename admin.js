@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     packagesList.innerHTML = data.map(pkg => `
       <div class="admin-item" data-id="${pkg.id}">
         <div class="admin-item-info">
-          <h4>${pkg.title} <span style="font-size:0.8rem; color:var(--gold); margin-left:0.5rem; border:1px solid var(--gold); padding:2px 6px; border-radius:4px;">${pkg.tone}</span></h4>
+          <h4>${pkg.title} <span style="font-size:0.8rem; color:var(--gold); margin-left:0.5rem; border:1px solid var(--gold); padding:2px 6px; border-radius:4px;">${pkg.tone}</span>${pkg.tab ? `<span style="font-size:0.75rem; color:var(--muted); margin-left:0.4rem; border:1px solid rgba(255,255,255,0.15); padding:2px 6px; border-radius:4px;">${pkg.tab}</span>` : ''}</h4>
           <p>Category: ${pkg.category} | Price: ${pkg.price} ${pkg.location ? `| Location: ${pkg.location}` : ''} ${pkg.featured ? '| ★ Featured' : ''}</p>
         </div>
         <div class="admin-item-actions">
@@ -253,6 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('pkg-category').value = pkg.category;
         document.getElementById('pkg-price').value = pkg.price;
         document.getElementById('pkg-tone').value = pkg.tone;
+        document.getElementById('pkg-tab').value = pkg.tab || '';
         document.getElementById('pkg-location').value = pkg.location || '';
         document.getElementById('pkg-photo').value = pkg.photo_url || '';
         document.getElementById('pkg-bullets').value = (pkg.bullets || []).join('\n');
@@ -292,6 +293,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const category = document.getElementById('pkg-category').value.trim();
     const price = document.getElementById('pkg-price').value.trim();
     const tone = document.getElementById('pkg-tone').value;
+    const tabVal = document.getElementById('pkg-tab').value.trim();
+    const tab = tabVal || null;
     const locationVal = document.getElementById('pkg-location').value;
     const location = locationVal || null;
     const photo = document.getElementById('pkg-photo').value.trim() || 'assets/photos/studio-portrait.jpg';
@@ -314,6 +317,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       category,
       price,
       tone,
+      tab,
       location,
       photo_url: photo,
       bullets,
@@ -372,6 +376,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           packagesToInsert.push({
             category: p.category,
             title: p.title,
+            tab: p.tab || null,
             location: p.location || null,
             price: p.price,
             tone: p.tone,

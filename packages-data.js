@@ -1,8 +1,11 @@
 window.defaultPackages = {
+
+  // ─── WEDDING ────────────────────────────────────────────────────────────────
   wedding: [
     {
       title: "One-Day Essential",
       category: "Photo + video",
+      tab: "Photo & Video",
       price: "GHS 6,500",
       tone: "wedding",
       photo: "assets/photos/wedding-couple.jpg",
@@ -19,6 +22,7 @@ window.defaultPackages = {
     {
       title: "One-Day Plus",
       category: "Photo + video",
+      tab: "Photo & Video",
       price: "GHS 7,000",
       tone: "wedding",
       photo: "assets/photos/wedding-party.jpg",
@@ -36,6 +40,7 @@ window.defaultPackages = {
     {
       title: "Same-Day Full",
       category: "Photo + video",
+      tab: "Photo & Video",
       price: "GHS 10,000",
       tone: "wedding",
       photo: "assets/photos/wedding-bride.jpg",
@@ -53,12 +58,13 @@ window.defaultPackages = {
     {
       title: "Two-Day Classic",
       category: "2 days coverage",
+      tab: "Photo & Video",
       price: "GHS 9,000",
       tone: "wedding",
       photo: "assets/photos/wedding-bride.jpg",
       bullets: [
         "12 hours coverage of traditional and white wedding with reception.",
-        "1 photographers and 1 videographers.",
+        "1 photographer and 1 videographer.",
         "200 basic edited images.",
         "15 retouched images.",
         "Designed A3-sized photo book.",
@@ -70,12 +76,13 @@ window.defaultPackages = {
     {
       title: "Multi-Day Premium",
       category: "2/3 days coverage",
+      tab: "Photo & Video",
       price: "GHS 11,000",
       tone: "wedding",
       photo: "assets/photos/wedding-party.jpg",
       bullets: [
         "17 hours coverage of pre-wedding, traditional and white wedding plus reception.",
-        "1 photographers and 2 videographers with a creative assistant.",
+        "1 photographer and 2 videographers with a creative assistant.",
         "200 basic edited images.",
         "20 retouched images.",
         "Designed A3-sized photo book.",
@@ -87,6 +94,7 @@ window.defaultPackages = {
     {
       title: "Signature Coverage",
       category: "2/3 days coverage",
+      tab: "Photo & Video",
       price: "GHS 13,000",
       tone: "wedding",
       photo: "assets/photos/wedding-couple.jpg",
@@ -100,8 +108,397 @@ window.defaultPackages = {
         "Two Framed images."
       ],
       tags: ["25 hours", "40 retouched", "800+ JPEGs"]
+    },
+    {
+      title: "Wedding Standard Stream",
+      category: "Live streaming",
+      tab: "Live Streaming",
+      price: "GHS 5,500",
+      tone: "wedding",
+      photo: "assets/photos/wedding-couple.jpg",
+      featured: false,
+      bullets: [
+        "Professional 1080p multi-camera live streaming.",
+        "Direct RTMP broadcast to YouTube, Facebook Live, or private portal.",
+        "Dedicated wireless bonding network for reliable coverage.",
+        "Remote viewing access with live viewer interaction.",
+        "Up to 8 hours of streaming coverage."
+      ],
+      tags: ["1080p Broadcast", "Multi-Camera", "RTMP"]
+    },
+    {
+      title: "Wedding Premium Stream",
+      category: "Live streaming",
+      tab: "Live Streaming",
+      price: "GHS 7,500",
+      tone: "wedding",
+      photo: "assets/photos/wedding-party.jpg",
+      bullets: [
+        "Full-day 1080p multi-camera streaming.",
+        "Includes ceremony and reception.",
+        "Dedicated wireless bonding network.",
+        "Photography coverage included.",
+        "Drone aerial footage.",
+        "All edited soft copies delivered."
+      ],
+      tags: ["Full Day", "Drone included", "Photo + Stream"]
+    },
+    {
+      title: "Wedding Drone Add-On",
+      category: "Aerial coverage",
+      tab: "Drone",
+      price: "GHS 2,500",
+      tone: "wedding",
+      photo: "assets/photos/wedding-bride.jpg",
+      bullets: [
+        "Cinematic drone coverage for establishing and aerial shots.",
+        "Pairs perfectly with any wedding photo/video or streaming package.",
+        "Delivery of all drone footage in high resolution.",
+        "Location and weather conditions may affect availability."
+      ],
+      tags: ["Drone", "Aerial", "Add-on"]
     }
   ],
+
+  // ─── FUNERAL ────────────────────────────────────────────────────────────────
+  funeral: [
+    {
+      title: "Funeral Coverage 2026",
+      category: "Event documentation",
+      tab: "Coverage",
+      price: "GHS 6,000",
+      tone: "funeral",
+      photo: "assets/photos/funeral-moment.jpg",
+      featured: true,
+      bullets: [
+        "Photography coverage.",
+        "Video post-production.",
+        "Drone shots.",
+        "Photobook.",
+        "All edited soft copies."
+      ],
+      tags: ["Photo", "Video", "Drone", "Photobook"]
+    },
+    {
+      title: "Funeral Live Streaming",
+      category: "Live streaming",
+      tab: "Live Streaming",
+      price: "GHS 6,500",
+      tone: "funeral",
+      photo: "assets/photos/funeral-service.jpg",
+      bullets: [
+        "Professional 1080p multi-camera streaming.",
+        "Direct RTMP broadcast setup.",
+        "Dedicated wireless bonding network.",
+        "Photography coverage.",
+        "Drone shots.",
+        "Photobook.",
+        "All edited soft copies."
+      ],
+      tags: ["1080p Broadcast", "Multi-Camera", "Live Streaming"]
+    },
+    {
+      title: "Funeral + Thanksgiving",
+      category: "Event documentation",
+      tab: "Full Package",
+      price: "GHS 9,000",
+      tone: "funeral",
+      photo: "assets/photos/funeral-moment.jpg",
+      featured: false,
+      bullets: [
+        "Photography coverage.",
+        "Video post-production.",
+        "Drone shots.",
+        "Photobook.",
+        "Social media vlogging.",
+        "Thanksgiving / lunch coverage included.",
+        "All edited soft copies."
+      ],
+      tags: ["Photo", "Video", "Vlogging", "Thanksgiving"]
+    },
+    {
+      title: "Funeral Full Production",
+      category: "Complete coverage",
+      tab: "Full Package",
+      price: "GHS 12,000",
+      tone: "funeral",
+      photo: "assets/photos/funeral-service.jpg",
+      bullets: [
+        "Full-day photography and videography coverage.",
+        "Live streaming (1080p multi-camera).",
+        "Drone aerial footage.",
+        "Thanksgiving / reception coverage.",
+        "Premium photobook.",
+        "Framed portrait tribute.",
+        "All edited soft copies and cloud delivery."
+      ],
+      tags: ["Full Day", "Live Stream", "Drone", "Tribute book"]
+    }
+  ],
+
+  // ─── ENGAGEMENT / INTRO ─────────────────────────────────────────────────────
+  engagement: [
+    {
+      title: "Engagement Classic",
+      category: "Engagement shoot",
+      tab: "Classic",
+      price: "GHS 2,500",
+      tone: "engagement",
+      photo: "assets/photos/wedding-couple.jpg",
+      featured: true,
+      bullets: [
+        "2-hour outdoor or studio session.",
+        "1 photographer.",
+        "15 professionally edited photos.",
+        "Soft copies delivered online.",
+        "Perfect for Save-the-Date announcements."
+      ],
+      tags: ["15 photos", "2 hours", "Online delivery"]
+    },
+    {
+      title: "Engagement Premium",
+      category: "Engagement shoot",
+      tab: "Premium",
+      price: "GHS 4,000",
+      tone: "engagement",
+      photo: "assets/photos/wedding-couple.jpg",
+      bullets: [
+        "3-hour outdoor/studio session.",
+        "1 photographer and 1 videographer.",
+        "25 professionally edited photos.",
+        "Engagement reel for social media.",
+        "Multiple scenic locations.",
+        "Advanced beauty retouching.",
+        "Online gallery delivery."
+      ],
+      tags: ["25 photos", "Reel included", "Multi-location"]
+    },
+    {
+      title: "Intro / Knocking Ceremony",
+      category: "Traditional ceremony",
+      tab: "Classic",
+      price: "GHS 3,500",
+      tone: "engagement",
+      photo: "assets/photos/traditional-props.jpg",
+      bullets: [
+        "Full ceremony photography coverage.",
+        "1 photographer and 1 videographer.",
+        "20 professionally edited photos.",
+        "Video highlights reel.",
+        "Soft copies and online gallery delivery."
+      ],
+      tags: ["Full ceremony", "20 photos", "Highlights reel"]
+    },
+    {
+      title: "Engagement Luxury",
+      category: "Engagement shoot",
+      tab: "Luxury",
+      price: "GHS 7,000",
+      tone: "engagement",
+      photo: "assets/photos/wedding-party.jpg",
+      bullets: [
+        "Full-day engagement and traditional ceremony coverage.",
+        "2 photographers and 1 videographer.",
+        "40 professionally edited photos.",
+        "Cinematic engagement film.",
+        "Premium location scouting.",
+        "Drone aerial shots.",
+        "Professional makeup service.",
+        "A3 photobook.",
+        "Framed portrait."
+      ],
+      tags: ["40 photos", "Cinematic film", "Makeup included"]
+    }
+  ],
+
+  // ─── NAMING CEREMONY ────────────────────────────────────────────────────────
+  naming: [
+    {
+      title: "Naming Essential",
+      category: "Ceremony coverage",
+      tab: "Essential",
+      price: "GHS 1,500",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      featured: true,
+      bullets: [
+        "3-hour ceremony coverage.",
+        "1 photographer.",
+        "20 professionally edited photos.",
+        "Online delivery via WhatsApp or cloud link.",
+        "Ideal for intimate family outdoorings."
+      ],
+      tags: ["20 photos", "3 hours", "Online delivery"]
+    },
+    {
+      title: "Naming Classic",
+      category: "Ceremony coverage",
+      tab: "Classic",
+      price: "GHS 3,000",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "5-hour event coverage.",
+        "1 photographer and 1 videographer.",
+        "30 professionally edited photos.",
+        "Video highlights reel.",
+        "Beautifully presented online gallery.",
+        "Drone aerial shots of venue."
+      ],
+      tags: ["30 photos", "Video reel", "Drone"]
+    },
+    {
+      title: "Naming Premium",
+      category: "Ceremony coverage",
+      tab: "Premium",
+      price: "GHS 5,000",
+      tone: "naming",
+      photo: "assets/photos/traditional-props.jpg",
+      bullets: [
+        "Full-day ceremony and reception coverage.",
+        "1 photographer and 1 videographer.",
+        "50 professionally edited photos.",
+        "Cinematic event film.",
+        "Live streaming to family abroad.",
+        "Drone aerial footage.",
+        "Premium photobook.",
+        "All edited soft copies."
+      ],
+      tags: ["50 photos", "Live stream", "Photobook"]
+    }
+  ],
+
+  // ─── CORPORATE EVENT ────────────────────────────────────────────────────────
+  corporate: [
+    {
+      title: "Conference Coverage",
+      category: "Conference",
+      tab: "Conference",
+      price: "GHS 4,000",
+      tone: "corporate",
+      photo: "assets/photos/wedding-party.jpg",
+      featured: true,
+      bullets: [
+        "Full-day conference or seminar coverage.",
+        "1 photographer.",
+        "Professional edited event photos.",
+        "Speaker headshots included.",
+        "Online gallery delivery within 5 working days."
+      ],
+      tags: ["Full day", "Headshots", "5-day delivery"]
+    },
+    {
+      title: "Product Launch & Party",
+      category: "Launch / Party",
+      tab: "Launch & Party",
+      price: "GHS 6,000",
+      tone: "corporate",
+      photo: "assets/photos/wedding-couple.jpg",
+      bullets: [
+        "Full-day event coverage.",
+        "1 photographer and 1 videographer.",
+        "50 professionally edited photos.",
+        "Highlight reel for social media and marketing.",
+        "Drone aerial for venue establishing shots.",
+        "Same-day BTS (behind-the-scenes) content."
+      ],
+      tags: ["50 photos", "Highlight reel", "Drone"]
+    },
+    {
+      title: "Award Night Coverage",
+      category: "Award night",
+      tab: "Award Night",
+      price: "GHS 8,000",
+      tone: "corporate",
+      photo: "assets/photos/wedding-bride.jpg",
+      bullets: [
+        "Full award ceremony coverage.",
+        "2 photographers and 1 videographer.",
+        "100 professionally edited photos.",
+        "Live streaming available as add-on.",
+        "Cinematic highlight film.",
+        "Professional red carpet shoot.",
+        "All edited soft copies delivered."
+      ],
+      tags: ["100 photos", "Red carpet", "Cinematic film"]
+    },
+    {
+      title: "Corporate Full Production",
+      category: "Full production",
+      tab: "Award Night",
+      price: "GHS 12,000",
+      tone: "corporate",
+      photo: "assets/photos/funeral-service.jpg",
+      bullets: [
+        "Full-day multi-team event coverage.",
+        "2 photographers and 2 videographers.",
+        "Live streaming (1080p multi-camera).",
+        "Drone aerial footage.",
+        "Same-day edited social media content.",
+        "Cinematic event film.",
+        "All edited soft copies and cloud delivery."
+      ],
+      tags: ["Full day", "Live stream", "Drone", "Same-day edits"]
+    }
+  ],
+
+  // ─── CONCERT / LIVE SHOW ────────────────────────────────────────────────────
+  concert: [
+    {
+      title: "Concert Coverage",
+      category: "Event coverage",
+      tab: "Coverage",
+      price: "GHS 5,000",
+      tone: "concert",
+      photo: "assets/photos/wedding-party.jpg",
+      featured: true,
+      bullets: [
+        "Full-show photography coverage.",
+        "1 photographer.",
+        "50 professionally edited photos.",
+        "Artist performance shots.",
+        "Online gallery delivery within 5 working days."
+      ],
+      tags: ["50 photos", "Performance shots", "5-day delivery"]
+    },
+    {
+      title: "Concert Streaming",
+      category: "Live streaming",
+      tab: "Streaming",
+      price: "GHS 7,000",
+      tone: "concert",
+      photo: "assets/photos/funeral-service.jpg",
+      bullets: [
+        "Full-show 1080p multi-camera streaming.",
+        "Direct RTMP broadcast to YouTube or Facebook Live.",
+        "Dedicated wireless bonding network.",
+        "Professional audio feed integration.",
+        "Photography coverage included.",
+        "Post-event recording for replay."
+      ],
+      tags: ["1080p", "Multi-camera", "Audio feed", "Recording"]
+    },
+    {
+      title: "Concert Full Production",
+      category: "Full production",
+      tab: "Full Production",
+      price: "GHS 12,000",
+      tone: "concert",
+      photo: "assets/photos/wedding-party.jpg",
+      bullets: [
+        "Full-show photography and videography.",
+        "Live streaming (1080p multi-camera).",
+        "Drone aerial coverage of venue and crowd.",
+        "Cinematic concert film for marketing.",
+        "Same-day social media content.",
+        "100 professionally edited photos.",
+        "All edited soft copies and cloud delivery."
+      ],
+      tags: ["Full production", "Drone", "Cinematic", "Same-day"]
+    }
+  ],
+
+  // ─── PORTRAIT (unchanged) ───────────────────────────────────────────────────
   portrait: [
     {
       title: "Basic Bump Shoot",
@@ -225,7 +622,7 @@ window.defaultPackages = {
         "15 professionally edited photos.",
         "Beauty retouching.",
         "Social media-ready images.",
-        "One 12” × 16” frame."
+        "One 12\u2033 × 16\u2033 frame."
       ],
       tags: ["15 photos", "Beauty retouch", "12×16 frame"]
     },
@@ -407,6 +804,8 @@ window.defaultPackages = {
       tags: ["30 photos", "Makeup included", "Cinematic"]
     }
   ],
+
+  // ─── STREAMING (standalone) ─────────────────────────────────────────────────
   streaming: [
     {
       title: "Standard Live Streaming",
@@ -449,56 +848,6 @@ window.defaultPackages = {
       ],
       tags: ["Drone", "Aerials", "Event add-on"]
     }
-  ],
-  funeral: [
-    {
-      title: "Funeral Coverage 2026",
-      category: "Event documentation",
-      price: "GHS 6,000",
-      tone: "funeral",
-      photo: "assets/photos/funeral-moment.jpg",
-      featured: true,
-      bullets: [
-        "Photography coverage.",
-        "Video post-production.",
-        "Drone shots.",
-        "Photobook.",
-        "All edited soft copies."
-      ],
-      tags: ["Photo", "Video", "Drone", "Photobook"]
-    },
-    {
-      title: "Funeral Live Streaming",
-      category: "Live streaming",
-      price: "GHS 6,500",
-      tone: "funeral",
-      photo: "assets/photos/funeral-service.jpg",
-      bullets: [
-        "Professional 1080p multi-camera streaming.",
-        "Direct RTMP broadcast setup.",
-        "Dedicated wireless bonding network.",
-        "Photography coverage.",
-        "Drone shots.",
-        "Photobook.",
-        "All edited soft copies."
-      ],
-      tags: ["1080p Broadcast", "Multi-Camera", "Live Streaming"]
-    },
-    {
-      title: "Funeral + Thanksgiving",
-      category: "Event documentation",
-      price: "GHS 9,000",
-      tone: "funeral",
-      photo: "assets/photos/funeral-moment.jpg",
-      bullets: [
-        "Photography coverage.",
-        "Video post-production.",
-        "Drone shots.",
-        "Photobook.",
-        "Social media vlogging.",
-        "All edited soft copies."
-      ],
-      tags: ["Photo", "Video", "Vlogging", "Thanksgiving"]
-    }
   ]
+
 };
