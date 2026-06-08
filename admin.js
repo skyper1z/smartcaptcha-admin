@@ -529,12 +529,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       tabs: ["Coverage", "Live Streaming", "Full Package"]
     },
     {
-      key: "engagement",
-      label: "Engagement / Intro",
-      icon: ICON_PRESETS.heart,
-      tabs: ["Classic", "Premium", "Luxury"]
-    },
-    {
       key: "naming",
       label: "Naming Ceremony",
       icon: ICON_PRESETS.calendar,
@@ -551,6 +545,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       label: "Concert / Live Show",
       icon: ICON_PRESETS.music,
       tabs: ["Coverage", "Streaming", "Full Production"]
+    },
+    {
+      key: "others",
+      label: "Other Events",
+      icon: ICON_PRESETS.star,
+      tabs: ["Classic", "Premium", "Luxury"]
     }
   ];
 

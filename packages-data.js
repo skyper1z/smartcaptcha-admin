@@ -237,13 +237,13 @@ window.defaultPackages = {
   ],
 
   // ─── ENGAGEMENT / INTRO ─────────────────────────────────────────────────────
-  engagement: [
+  others: [
     {
       title: "Engagement Classic",
       category: "Engagement shoot",
       tab: "Classic",
       price: "GHS 2,500",
-      tone: "engagement",
+      tone: "others",
       photo: "assets/photos/wedding-couple.jpg",
       featured: true,
       bullets: [
@@ -260,7 +260,7 @@ window.defaultPackages = {
       category: "Engagement shoot",
       tab: "Premium",
       price: "GHS 4,000",
-      tone: "engagement",
+      tone: "others",
       photo: "assets/photos/wedding-couple.jpg",
       bullets: [
         "3-hour outdoor/studio session.",
@@ -278,7 +278,7 @@ window.defaultPackages = {
       category: "Traditional ceremony",
       tab: "Classic",
       price: "GHS 3,500",
-      tone: "engagement",
+      tone: "others",
       photo: "assets/photos/traditional-props.jpg",
       bullets: [
         "Full ceremony photography coverage.",
@@ -294,7 +294,7 @@ window.defaultPackages = {
       category: "Engagement shoot",
       tab: "Luxury",
       price: "GHS 7,000",
-      tone: "engagement",
+      tone: "others",
       photo: "assets/photos/wedding-party.jpg",
       bullets: [
         "Full-day engagement and traditional ceremony coverage.",
