@@ -57,7 +57,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await window.supabaseClient.auth.signOut();
   });
 
+  let isDashboardVisible = false;
+
   function showDashboard() {
+    if (isDashboardVisible) return;
+    isDashboardVisible = true;
     authContainer.classList.add('hidden');
     dashboardContainer.classList.remove('hidden');
     loadGallery();
@@ -67,6 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function showLogin() {
+    isDashboardVisible = false;
     authContainer.classList.remove('hidden');
     dashboardContainer.classList.add('hidden');
   }
@@ -691,12 +696,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  let eventTypeDebounceTimeout = null;
+
   function setupEventTypesRealtime() {
     if (!window.supabaseClient) return;
+    
+    // Clean up existing subscription if any to prevent duplicate channels
+    try {
+      window.supabaseClient.removeChannel(window.supabaseClient.channel('public:event_types_admin'));
+    } catch (e) {
+      console.warn("Failed to remove old channel:", e);
+    }
+
     window.supabaseClient
       .channel('public:event_types_admin')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'event_types' }, () => {
-        loadEventTypes();
+        clearTimeout(eventTypeDebounceTimeout);
+        eventTypeDebounceTimeout = setTimeout(() => {
+          loadEventTypes();
+        }, 150); // debounce database load
       })
       .subscribe();
   }
