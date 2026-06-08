@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     grid.innerHTML = data.map(img => `
       <div class="admin-image-card">
-        <img src="${img.src}" alt="Gallery Image">
+        <img src="${img.src}" loading="lazy" alt="Gallery Image">
         <button class="delete-btn" data-id="${img.id}">X</button>
       </div>
     `).join('');
