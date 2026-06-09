@@ -284,9 +284,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (session) {
-        const migrationKey = 'birthday_packages_migrated_v1';
+        const migrationKey = 'birthday_packages_migrated_v2';
         if (!localStorage.getItem(migrationKey)) {
-          console.log("Running automatic birthday packages migration...");
+          console.log("Running automatic birthday packages migration (v2)...");
           
           // 1. Delete ONLY the old in-studio birthday packages
           await window.supabaseClient
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 "High-resolution digital delivery.",
                 "Parent-child portraits included."
               ],
-              tags: ["1 outfit", "6 photos", "1 hour", "Digital delivery"],
+              tags: ["Studio Session", "Birthday Portraits", "Themed Setup", "Child Photography", "Props", "Photo Editing", "Retouching", "Digital Delivery"],
               featured: false,
               tab: null
             },
@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 "Family portraits included.",
                 "High-resolution digital delivery."
               ],
-              tags: ["2 outfits", "10 photos", "Cake smash", "2 setups"],
+              tags: ["Studio Session", "Multiple Outfits", "Themed Setup", "Cake Smash", "Child Portraits", "Family Portraits", "Photo Editing", "Digital Delivery"],
               tab: null
             },
             {
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 "30-second birthday reel.",
                 "One framed portrait."
               ],
-              tags: ["20 photos", "Birthday reel", "Framed portrait"],
+              tags: ["Luxury Setup", "Multiple Themes", "Cake Smash", "Family Portraits", "Premium Retouching", "Birthday Reel", "Framed Portrait", "Digital Delivery"],
               tab: null
             },
             {
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 "Framed portrait.",
                 "Mini photo album."
               ],
-              tags: ["30 photos", "Custom theme", "Cinematic reel", "Photo album"],
+              tags: ["Luxury Experience", "Custom Theme", "Premium Props", "Family Portraits", "Birthday Reel", "Behind-The-Scenes", "Framed Portrait", "Photo Album"],
               tab: null
             }
           ];
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
           if (!insErr) {
             localStorage.setItem(migrationKey, 'true');
-            console.log("Automatic birthday packages migration completed successfully!");
+            console.log("Automatic birthday packages migration (v2) completed successfully!");
             location.reload();
             return;
           } else {

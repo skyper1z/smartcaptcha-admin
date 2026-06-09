@@ -676,7 +676,7 @@ window.defaultPackages = {
         "High-resolution digital delivery.",
         "Parent-child portraits included."
       ],
-      tags: ["1 outfit", "6 photos", "1 hour", "Digital delivery"]
+      tags: ["Studio Session", "Birthday Portraits", "Themed Setup", "Child Photography", "Props", "Photo Editing", "Retouching", "Digital Delivery"]
     },
     {
       title: "Gold Package",
@@ -696,7 +696,7 @@ window.defaultPackages = {
         "Family portraits included.",
         "High-resolution digital delivery."
       ],
-      tags: ["2 outfits", "10 photos", "Cake smash", "2 setups"]
+      tags: ["Studio Session", "Multiple Outfits", "Themed Setup", "Cake Smash", "Child Portraits", "Family Portraits", "Photo Editing", "Digital Delivery"]
     },
     {
       title: "Platinum Package",
@@ -716,7 +716,7 @@ window.defaultPackages = {
         "30-second birthday reel.",
         "One framed portrait."
       ],
-      tags: ["20 photos", "Birthday reel", "Framed portrait"]
+      tags: ["Luxury Setup", "Multiple Themes", "Cake Smash", "Family Portraits", "Premium Retouching", "Birthday Reel", "Framed Portrait", "Digital Delivery"]
     },
     {
       title: "Signature Package",
@@ -737,7 +737,7 @@ window.defaultPackages = {
         "Framed portrait.",
         "Mini photo album."
       ],
-      tags: ["30 photos", "Custom theme", "Cinematic reel", "Photo album"]
+      tags: ["Luxury Experience", "Custom Theme", "Premium Props", "Family Portraits", "Birthday Reel", "Behind-The-Scenes", "Framed Portrait", "Photo Album"]
     },
     {
       title: "Outdoor Birthday Mini",
