@@ -77,6 +77,23 @@
           <button class="button primary" id="add-package-btn">Add Package</button>
         </div>
 
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-container">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="package-search-input" placeholder="Search package by name, category, or tags...">
+          </div>
+          <div class="filter-wrapper">
+            <select id="package-category-filter">
+              <option value="all">All Groups</option>
+              <option value="wedding">Wedding</option>
+              <option value="portrait">Portrait</option>
+              <option value="streaming">Streaming</option>
+              <option value="funeral">Funeral</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Add Package Form (Hidden by default) -->
         <div id="add-package-form-container" class="tool-card hidden" style="margin-bottom: 2rem;">
           <h3 id="pkg-form-title">Add New Package</h3>

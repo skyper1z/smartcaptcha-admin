@@ -252,6 +252,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addPkgForm = document.getElementById('add-package-form');
   const packagesList = document.getElementById('admin-packages-list');
 
+  let loadedPackages = [];
+  const packageSearchInput = document.getElementById('package-search-input');
+  const packageCategoryFilter = document.getElementById('package-category-filter');
+
+  packageSearchInput.addEventListener('input', renderPackages);
+  packageCategoryFilter.addEventListener('change', renderPackages);
+
   // Toggle Form
   addPkgBtn.addEventListener('click', () => {
     resetPackageForm();
@@ -281,32 +288,93 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    loadedPackages = data;
+
     // Update stats dynamically
     updateStats();
+    renderPackages();
+  }
 
-    if (data.length === 0) {
+  // Render Grouped and Filtered Packages
+  function renderPackages() {
+    if (loadedPackages.length === 0) {
       packagesList.innerHTML = 'No packages found. Run the seed script or add a new package.';
       return;
     }
 
-    packagesList.innerHTML = data.map(pkg => `
-      <div class="admin-item" data-id="${pkg.id}">
-        <div class="admin-item-info">
-          <h4>${pkg.title} <span style="font-size:0.8rem; color:var(--gold); margin-left:0.5rem; border:1px solid var(--gold); padding:2px 6px; border-radius:4px;">${pkg.tone}</span>${pkg.tab ? `<span style="font-size:0.75rem; color:var(--muted); margin-left:0.4rem; border:1px solid rgba(255,255,255,0.15); padding:2px 6px; border-radius:4px;">${pkg.tab}</span>` : ''}</h4>
-          <p>Category: ${pkg.category} | Price: ${pkg.price} ${pkg.location ? `| Location: ${pkg.location}` : ''} ${pkg.featured ? '| ★ Featured' : ''}</p>
-        </div>
-        <div class="admin-item-actions">
-          <button class="button edit edit-pkg-btn" data-id="${pkg.id}">Edit</button>
-          <button class="button danger delete-pkg-btn" data-id="${pkg.id}">Delete</button>
-        </div>
-      </div>
-    `).join('');
+    const searchQuery = packageSearchInput.value.toLowerCase().trim();
+    const categoryFilter = packageCategoryFilter.value;
+
+    const filtered = loadedPackages.filter(pkg => {
+      const titleMatches = pkg.title ? pkg.title.toLowerCase().includes(searchQuery) : false;
+      const categoryMatches = pkg.category ? pkg.category.toLowerCase().includes(searchQuery) : false;
+      const toneMatches = pkg.tone ? pkg.tone.toLowerCase().includes(searchQuery) : false;
+      const tagsMatches = (pkg.tags && Array.isArray(pkg.tags)) ? pkg.tags.some(tag => tag.toLowerCase().includes(searchQuery)) : false;
+
+      const matchesSearch = titleMatches || categoryMatches || toneMatches || tagsMatches;
+      const matchesFilter = categoryFilter === 'all' || pkg.tone === categoryFilter;
+
+      return matchesSearch && matchesFilter;
+    });
+
+    if (filtered.length === 0) {
+      packagesList.innerHTML = '<div class="no-packages-found">No packages match your search or filter criteria.</div>';
+      return;
+    }
+
+    // Group packages by tone (main category)
+    const groups = {};
+    filtered.forEach(pkg => {
+      const tone = pkg.tone || 'uncategorized';
+      if (!groups[tone]) {
+        groups[tone] = [];
+      }
+      groups[tone].push(pkg);
+    });
+
+    const toneOrder = ['wedding', 'portrait', 'streaming', 'funeral', 'uncategorized'];
+    let html = '';
+
+    toneOrder.forEach(tone => {
+      if (groups[tone] && groups[tone].length > 0) {
+        const tonePackages = groups[tone];
+        html += `
+          <div class="package-group-section group-${tone}">
+            <div class="package-group-header">
+              <h3>${tone} Packages</h3>
+              <span class="package-count-badge">${tonePackages.length} package${tonePackages.length > 1 ? 's' : ''}</span>
+            </div>
+            <div class="admin-list">
+              ${tonePackages.map(pkg => `
+                <div class="admin-item" data-id="${pkg.id}">
+                  <div class="admin-item-info">
+                    <h4>${pkg.title} ${pkg.featured ? '<span style="font-size:0.75rem; color:var(--teal-bright); margin-left:0.5rem; border:1px solid var(--teal-bright); padding:2px 6px; border-radius:4px;">★ Featured</span>' : ''}${pkg.tab ? `<span style="font-size:0.75rem; color:var(--muted); margin-left:0.4rem; border:1px solid rgba(255,255,255,0.15); padding:2px 6px; border-radius:4px;">${pkg.tab}</span>` : ''}</h4>
+                    <p>Category: ${pkg.category} | Price: ${pkg.price} ${pkg.location ? `| Location: ${pkg.location}` : ''}</p>
+                    ${pkg.tags && pkg.tags.length > 0 ? `
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                        ${pkg.tags.map(t => `<span style="font-size: 0.72rem; padding: 1px 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 4px; color: var(--muted);">${t}</span>`).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                  <div class="admin-item-actions">
+                    <button class="button edit edit-pkg-btn" data-id="${pkg.id}">Edit</button>
+                    <button class="button danger delete-pkg-btn" data-id="${pkg.id}">Delete</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    });
+
+    packagesList.innerHTML = html;
 
     // Attach edit listeners
     packagesList.querySelectorAll('.edit-pkg-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.id;
-        const pkg = data.find(p => p.id === id);
+        const pkg = loadedPackages.find(p => p.id === id);
         if (!pkg) return;
         
         // Populate form
