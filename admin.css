@@ -546,6 +546,10 @@
 .group-portrait .package-group-header h3::before { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
 .group-streaming .package-group-header h3::before { background: #00b4a6; box-shadow: 0 0 8px #00b4a6; }
 .group-funeral .package-group-header h3::before { background: var(--wine); box-shadow: 0 0 8px var(--wine); }
+.group-naming .package-group-header h3::before { background: #e0aaff; box-shadow: 0 0 8px #e0aaff; }
+.group-corporate .package-group-header h3::before { background: #0077b6; box-shadow: 0 0 8px #0077b6; }
+.group-concert .package-group-header h3::before { background: #ff5400; box-shadow: 0 0 8px #ff5400; }
+.group-others .package-group-header h3::before { background: #7209b7; box-shadow: 0 0 8px #7209b7; }
 
 .package-count-badge {
   background: rgba(255, 255, 255, 0.08);

@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       groups[tone].push(pkg);
     });
 
-    const toneOrder = ['wedding', 'portrait', 'streaming', 'funeral', 'uncategorized'];
+    const toneOrder = ['wedding', 'portrait', 'streaming', 'funeral', 'naming', 'corporate', 'concert', 'others', 'uncategorized'];
     let html = '';
 
     toneOrder.forEach(tone => {
