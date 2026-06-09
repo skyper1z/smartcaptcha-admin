@@ -663,74 +663,81 @@ window.defaultPackages = {
       tags: ["Heritage luxury", "30 images", "Photobook option"]
     },
     {
-      title: "Mini Birthday Package",
-      category: "Birthday shoot",
-      location: "In-studio",
-      price: "GHS 300",
-      tone: "portrait",
-      photo: "assets/photos/studio-portrait.jpg",
-      bullets: [
-        "30-minute studio session.",
-        "1 outfit.",
-        "1 backdrop.",
-        "5 professionally edited photos.",
-        "Soft copies delivered online."
-      ],
-      tags: ["5 photos", "1 outfit", "30 mins"]
-    },
-    {
-      title: "Classic Birthday Package",
+      title: "Silver Package",
       category: "Birthday shoot",
       location: "In-studio",
       price: "GHS 500",
       tone: "portrait",
-      photo: "assets/photos/traditional-props.jpg",
+      photo: "assets/photos/studio-portrait.jpg",
       bullets: [
         "1-hour studio session.",
-        "Up to 2 outfit changes.",
-        "2 backdrop setups.",
-        "10 professionally edited photos.",
-        "Basic retouching.",
-        "Soft copies delivered online."
+        "1 outfit.",
+        "6 professionally edited photos.",
+        "High-resolution digital delivery.",
+        "Parent-child portraits included."
       ],
-      tags: ["10 photos", "2 outfits", "1 hour"]
+      tags: ["1 outfit", "6 photos", "1 hour", "Digital delivery"]
     },
     {
-      title: "Premium Birthday Package",
+      title: "Gold Package",
       category: "Birthday shoot",
       location: "In-studio",
-      price: "GHS 1,000",
+      price: "GHS 900",
+      tone: "portrait",
+      photo: "assets/photos/traditional-props.jpg",
+      featured: true,
+      bullets: [
+        "Up to 2-hour studio session.",
+        "Two themed setups.",
+        "Up to 2 outfit changes.",
+        "Birthday props provided.",
+        "Cake smash session (cake provided by client).",
+        "10 professionally edited photos.",
+        "Family portraits included.",
+        "High-resolution digital delivery."
+      ],
+      tags: ["2 outfits", "10 photos", "Cake smash", "2 setups"]
+    },
+    {
+      title: "Platinum Package",
+      category: "Birthday shoot",
+      location: "In-studio",
+      price: "GHS 1,500",
       tone: "portrait",
       photo: "assets/photos/studio-portrait.jpg",
       bullets: [
-        "2-hour studio session.",
-        "Up to 3 outfit changes.",
-        "Multiple backdrop setups.",
-        "15 professionally edited photos.",
-        "Advanced beauty retouching.",
-        "Social media-ready images.",
-        "30-second birthday reel."
+        "Up to 3-hour studio session.",
+        "Premium birthday-themed setups.",
+        "Multiple outfit changes.",
+        "Premium props and decorations provided.",
+        "Cake smash session.",
+        "Family and sibling portraits.",
+        "20 professionally edited photos.",
+        "30-second birthday reel.",
+        "One framed portrait."
       ],
-      tags: ["15 photos", "3 outfits", "Reel included"]
+      tags: ["20 photos", "Birthday reel", "Framed portrait"]
     },
     {
-      title: "Luxury Birthday Package",
+      title: "Signature Package",
       category: "Birthday shoot",
       location: "In-studio",
-      price: "GHS 2,000",
+      price: "GHS 3,000",
       tone: "portrait",
       photo: "assets/photos/traditional-props.jpg",
       bullets: [
-        "Up to 3-hour studio session.",
+        "Fully customized birthday concept.",
+        "Premium themed set design.",
         "Unlimited outfit changes.",
-        "Premium themed setup.",
-        "25 edited photos.",
+        "Luxury props and décor.",
+        "Cake smash session.",
+        "Family portraits.",
+        "30 professionally edited photos.",
         "Cinematic birthday reel.",
-        "Premium retouching.",
-        "Professional makeup service.",
-        "One framed portrait (A3 size)."
+        "Framed portrait.",
+        "Mini photo album."
       ],
-      tags: ["25 photos", "Makeup included", "A3 portrait"]
+      tags: ["30 photos", "Custom theme", "Cinematic reel", "Photo album"]
     },
     {
       title: "Outdoor Birthday Mini",
