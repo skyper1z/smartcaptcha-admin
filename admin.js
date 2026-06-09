@@ -284,22 +284,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (session) {
-        const migrationKey = 'birthday_packages_migrated_v2';
+        const migrationKey = 'birthday_packages_migrated_v3';
         if (!localStorage.getItem(migrationKey)) {
-          console.log("Running automatic birthday packages migration (v2)...");
+          console.log("Running automatic birthday packages migration (v3)...");
           
-          // 1. Delete ONLY the old in-studio birthday packages
+          // 1. Delete ONLY the old in-studio birthday and child birthday packages
           await window.supabaseClient
             .from('packages')
             .delete()
-            .eq('category', 'Birthday shoot')
-            .eq('location', 'In-studio');
+            .eq('location', 'In-studio')
+            .in('category', ['Birthday shoot', 'Child Birthday']);
             
           // 2. Insert new packages
           const newPackages = [
             {
               title: "Silver Package",
-              category: "Birthday shoot",
+              category: "Child Birthday",
               location: "In-studio",
               price: "GHS 500",
               tone: "portrait",
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             {
               title: "Gold Package",
-              category: "Birthday shoot",
+              category: "Child Birthday",
               location: "In-studio",
               price: "GHS 900",
               tone: "portrait",
@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             {
               title: "Platinum Package",
-              category: "Birthday shoot",
+              category: "Child Birthday",
               location: "In-studio",
               price: "GHS 1,500",
               tone: "portrait",
@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             {
               title: "Signature Package",
-              category: "Birthday shoot",
+              category: "Child Birthday",
               location: "In-studio",
               price: "GHS 3,000",
               tone: "portrait",
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
           if (!insErr) {
             localStorage.setItem(migrationKey, 'true');
-            console.log("Automatic birthday packages migration (v2) completed successfully!");
+            console.log("Automatic birthday packages migration (v3) completed successfully!");
             location.reload();
             return;
           } else {

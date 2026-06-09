@@ -664,7 +664,7 @@ window.defaultPackages = {
     },
     {
       title: "Silver Package",
-      category: "Birthday shoot",
+      category: "Child Birthday",
       location: "In-studio",
       price: "GHS 500",
       tone: "portrait",
@@ -680,7 +680,7 @@ window.defaultPackages = {
     },
     {
       title: "Gold Package",
-      category: "Birthday shoot",
+      category: "Child Birthday",
       location: "In-studio",
       price: "GHS 900",
       tone: "portrait",
@@ -700,7 +700,7 @@ window.defaultPackages = {
     },
     {
       title: "Platinum Package",
-      category: "Birthday shoot",
+      category: "Child Birthday",
       location: "In-studio",
       price: "GHS 1,500",
       tone: "portrait",
@@ -720,7 +720,7 @@ window.defaultPackages = {
     },
     {
       title: "Signature Package",
-      category: "Birthday shoot",
+      category: "Child Birthday",
       location: "In-studio",
       price: "GHS 3,000",
       tone: "portrait",
