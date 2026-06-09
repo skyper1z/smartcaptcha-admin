@@ -855,6 +855,23 @@ window.defaultPackages = {
       ],
       tags: ["Drone", "Aerials", "Event add-on"]
     }
+  ],
+  birthday: [
+    {
+      title: "Classic Package",
+      category: "Photo + Video",
+      tab: "Photo + Video",
+      price: "GHS 4,500",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Photography coverage",
+        "Videography coverage",
+        "100+ edited photos",
+        "Full event video",
+        "2–3 minute highlight"
+      ],
+      tags: ["Full video", "photo", "highlight"]
+    }
   ]
-
 };

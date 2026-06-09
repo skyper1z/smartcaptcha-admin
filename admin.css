@@ -549,6 +549,7 @@
 .group-naming .package-group-header h3::before { background: #e0aaff; box-shadow: 0 0 8px #e0aaff; }
 .group-corporate .package-group-header h3::before { background: #0077b6; box-shadow: 0 0 8px #0077b6; }
 .group-concert .package-group-header h3::before { background: #ff5400; box-shadow: 0 0 8px #ff5400; }
+.group-birthday .package-group-header h3::before { background: #f72585; box-shadow: 0 0 8px #f72585; }
 .group-others .package-group-header h3::before { background: #7209b7; box-shadow: 0 0 8px #7209b7; }
 
 .package-count-badge {
