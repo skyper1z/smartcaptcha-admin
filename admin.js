@@ -396,54 +396,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("Migration insert failed:", insErr);
           }
         }
-
-        // ONE-TIME RESTORATION FOR BIRTHDAY CLASSIC PACKAGE
-        const classicMigrationKey = 'birthday_classic_package_restored_v1';
-        if (!localStorage.getItem(classicMigrationKey)) {
-          console.log("Checking and restoring Birthday Classic Package...");
-          
-          const { data: existingPkg, error: checkErr } = await window.supabaseClient
-            .from('packages')
-            .select('id')
-            .eq('title', 'Classic Package')
-            .eq('tone', 'birthday')
-            .limit(1);
-
-          if (!checkErr && (!existingPkg || existingPkg.length === 0)) {
-            const classicPackage = {
-              title: "Classic Package",
-              category: "Photo + Video",
-              tab: "Photo + Video",
-              price: "GHS 4,500",
-              tone: "birthday",
-              photo_url: "assets/photos/studio-portrait.jpg",
-              bullets: [
-                "Photography coverage",
-                "Videography coverage",
-                "100+ edited photos",
-                "Full event video",
-                "2–3 minute highlight"
-              ],
-              tags: ["Full video", "photo", "highlight"],
-              featured: false,
-              location: null
-            };
-            const { error: insErr } = await window.supabaseClient
-              .from('packages')
-              .insert([classicPackage]);
-
-            if (insErr) {
-              console.error("Classic Package restoration failed:", insErr);
-            } else {
-              localStorage.setItem(classicMigrationKey, 'true');
-              console.log("Classic Package restored successfully!");
-              location.reload();
-              return;
-            }
-          } else {
-            localStorage.setItem(classicMigrationKey, 'true');
-          }
-        }
       }
     } catch (err) {
       console.error("Migration error:", err);
@@ -458,6 +410,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     loadedPackages = data;
+
+    // Check if the Classic Package is present in loadedPackages
+    const hasClassicPackage = loadedPackages.some(pkg => pkg.title === 'Classic Package' && pkg.tone === 'birthday');
+    if (!hasClassicPackage) {
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (session) {
+          console.log("Birthday Classic Package is missing from DB. Restoring...");
+          const classicPackage = {
+            title: "Classic Package",
+            category: "Photo + Video",
+            tab: "Photo + Video",
+            price: "GHS 4,500",
+            tone: "birthday",
+            photo_url: "assets/photos/studio-portrait.jpg",
+            bullets: [
+              "Photography coverage",
+              "Videography coverage",
+              "100+ edited photos",
+              "Full event video",
+              "2–3 minute highlight"
+            ],
+            tags: ["Full video", "photo", "highlight"],
+            featured: false,
+            location: null
+          };
+          const { data: inserted, error: insErr } = await window.supabaseClient
+            .from('packages')
+            .insert([classicPackage])
+            .select();
+            
+          if (!insErr && inserted && inserted.length > 0) {
+            console.log("Classic Package restored successfully!");
+            loadedPackages.unshift(inserted[0]);
+          } else if (insErr) {
+            console.error("Failed to restore Classic Package:", insErr.message);
+          }
+        }
+      } catch (err) {
+        console.error("Restoration error:", err);
+      }
+    }
 
     // Update stats dynamically
     updateStats();
