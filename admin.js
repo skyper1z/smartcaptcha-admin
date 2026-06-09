@@ -280,6 +280,127 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load Packages
   async function loadPackages() {
+    // ONE-TIME AUTOMATIC MIGRATION FOR NEW BIRTHDAY PACKAGES
+    try {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (session) {
+        const migrationKey = 'birthday_packages_migrated_v1';
+        if (!localStorage.getItem(migrationKey)) {
+          console.log("Running automatic birthday packages migration...");
+          
+          // 1. Delete ONLY the old in-studio birthday packages
+          await window.supabaseClient
+            .from('packages')
+            .delete()
+            .eq('category', 'Birthday shoot')
+            .eq('location', 'In-studio');
+            
+          // 2. Insert new packages
+          const newPackages = [
+            {
+              title: "Silver Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 500",
+              tone: "portrait",
+              photo_url: "assets/photos/studio-portrait.jpg",
+              bullets: [
+                "1-hour studio session.",
+                "1 outfit.",
+                "6 professionally edited photos.",
+                "High-resolution digital delivery.",
+                "Parent-child portraits included."
+              ],
+              tags: ["1 outfit", "6 photos", "1 hour", "Digital delivery"],
+              featured: false,
+              tab: null
+            },
+            {
+              title: "Gold Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 900",
+              tone: "portrait",
+              photo_url: "assets/photos/traditional-props.jpg",
+              featured: true,
+              bullets: [
+                "Up to 2-hour studio session.",
+                "Two themed setups.",
+                "Up to 2 outfit changes.",
+                "Birthday props provided.",
+                "Cake smash session (cake provided by client).",
+                "10 professionally edited photos.",
+                "Family portraits included.",
+                "High-resolution digital delivery."
+              ],
+              tags: ["2 outfits", "10 photos", "Cake smash", "2 setups"],
+              tab: null
+            },
+            {
+              title: "Platinum Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 1,500",
+              tone: "portrait",
+              photo_url: "assets/photos/studio-portrait.jpg",
+              featured: false,
+              bullets: [
+                "Up to 3-hour studio session.",
+                "Premium birthday-themed setups.",
+                "Multiple outfit changes.",
+                "Premium props and decorations provided.",
+                "Cake smash session.",
+                "Family and sibling portraits.",
+                "20 professionally edited photos.",
+                "30-second birthday reel.",
+                "One framed portrait."
+              ],
+              tags: ["20 photos", "Birthday reel", "Framed portrait"],
+              tab: null
+            },
+            {
+              title: "Signature Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 3,000",
+              tone: "portrait",
+              photo_url: "assets/photos/traditional-props.jpg",
+              featured: false,
+              bullets: [
+                "Fully customized birthday concept.",
+                "Premium themed set design.",
+                "Unlimited outfit changes.",
+                "Luxury props and décor.",
+                "Cake smash session.",
+                "Family portraits.",
+                "30 professionally edited photos.",
+                "Cinematic birthday reel.",
+                "Framed portrait.",
+                "Mini photo album."
+              ],
+              tags: ["30 photos", "Custom theme", "Cinematic reel", "Photo album"],
+              tab: null
+            }
+          ];
+          
+          const { error: insErr } = await window.supabaseClient
+            .from('packages')
+            .insert(newPackages);
+            
+          if (!insErr) {
+            localStorage.setItem(migrationKey, 'true');
+            console.log("Automatic birthday packages migration completed successfully!");
+            location.reload();
+            return;
+          } else {
+            console.error("Migration insert failed:", insErr);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Migration error:", err);
+    }
+
     packagesList.innerHTML = 'Loading...';
     const { data, error } = await window.supabaseClient.from('packages').select('*').order('created_at', { ascending: false });
     
