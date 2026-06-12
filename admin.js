@@ -76,6 +76,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
+      // 1c. Update Birthday Party event type tabs if they are using the old tabs
+      const { data: birthdayEtData } = await window.supabaseClient.from('event_types').select('*').eq('key', 'birthday');
+      if (birthdayEtData && birthdayEtData.length > 0) {
+        const expectedTabs = ["Photo only", "Video only", "Photo & Video"];
+        const birthdayRow = birthdayEtData[0];
+        const needsTabsUpdate = birthdayRow.tabs.length !== expectedTabs.length ||
+                                birthdayRow.tabs.some((t, i) => t !== expectedTabs[i]);
+        if (needsTabsUpdate) {
+          console.log("Updating Birthday Party tabs in event_types database table...");
+          await window.supabaseClient.from('event_types').update({ tabs: expectedTabs }).eq('key', 'birthday');
+        }
+      }
+
       // 2. Restore missing packages
       let { data: pkgData } = await window.supabaseClient.from('packages').select('title,tone');
       if (pkgData) {
@@ -106,6 +119,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("Error syncing Naming Ceremony packages:", syncErr.message);
           } else {
             console.log("Naming Ceremony packages synchronized successfully.");
+          }
+          // Refetch packages to get latest state
+          const { data: refetchedPkgData } = await window.supabaseClient.from('packages').select('title,tone');
+          if (refetchedPkgData) {
+            pkgData = refetchedPkgData;
+          }
+        }
+
+        // 2c. Sync Birthday party packages if out of sync
+        const birthdayPackagesInDB = pkgData.filter(p => p.tone === 'birthday');
+        const expectedBirthdayTitles = new Set(window.defaultPackages.birthday.map(p => p.title.toLowerCase().trim()));
+        
+        const needsBirthdaySync = birthdayPackagesInDB.length !== window.defaultPackages.birthday.length || 
+                                  birthdayPackagesInDB.some(p => !expectedBirthdayTitles.has(p.title.toLowerCase().trim()));
+        
+        if (needsBirthdaySync) {
+          console.log("Birthday party packages are out of sync in database. Synchronizing...");
+          await window.supabaseClient.from('packages').delete().eq('tone', 'birthday');
+          const toInsertBirthday = window.defaultPackages.birthday.map(p => ({
+            category: p.category,
+            title: p.title,
+            tab: p.tab || null,
+            location: p.location || null,
+            price: p.price,
+            tone: p.tone,
+            photo_url: p.photo || null,
+            bullets: p.bullets || [],
+            tags: p.tags || [],
+            featured: p.featured || false
+          }));
+          const { error: syncErr } = await window.supabaseClient.from('packages').insert(toInsertBirthday);
+          if (syncErr) {
+            console.error("Error syncing Birthday party packages:", syncErr.message);
+          } else {
+            console.log("Birthday party packages synchronized successfully.");
           }
           // Refetch packages to get latest state
           const { data: refetchedPkgData } = await window.supabaseClient.from('packages').select('title,tone');

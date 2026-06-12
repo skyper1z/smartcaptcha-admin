@@ -1040,9 +1040,94 @@ window.defaultPackages = {
   ],
   birthday: [
     {
+      title: "Silver Package",
+      category: "Photography",
+      tab: "Photo only",
+      price: "GHS 2,000",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Up to 4 hours coverage",
+        "One professional photographer",
+        "100+ edited high-resolution images",
+        "Family and guest portraits",
+        "Online gallery delivery",
+        "Premium retouching"
+      ],
+      tags: ["4 hours", "1 photographer", "100+ photos"]
+    },
+    {
+      title: "Gold Package",
+      category: "Photography",
+      tab: "Photo only",
+      price: "GHS 3,000",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Up to 6 hours coverage",
+        "One professional photographer",
+        "150+ edited images",
+        "Advanced retouching",
+        "Group and family portraits",
+        "Same-day photo highlights",
+        "One framed portrait"
+      ],
+      tags: ["6 hours", "150+ photos", "Framed portrait"]
+    },
+    {
+      title: "Platinum Package",
+      category: "Photography",
+      tab: "Photo only",
+      price: "GHS 4,500",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Full event coverage",
+        "Two photographers",
+        "250+ edited images",
+        "Premium editing and retouching",
+        "Online gallery",
+        "One framed portrait",
+        "Luxury presentation package"
+      ],
+      tags: ["Full coverage", "2 photographers", "250+ photos"]
+    },
+    {
+      title: "Standard Package",
+      category: "Videography",
+      tab: "Video only",
+      price: "GHS 2,500",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Up to 4 hours coverage",
+        "One videographer",
+        "Full event recording",
+        "2–3 minute highlight reel",
+        "Professional editing"
+      ],
+      tags: ["4 hours", "1 videographer", "Highlight reel"]
+    },
+    {
+      title: "Premium Package",
+      category: "Videography",
+      tab: "Video only",
+      price: "GHS 4,000",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Multi-camera coverage",
+        "Cinematic storytelling",
+        "3–5 minute highlight film",
+        "Full edited event video",
+        "Social media teaser"
+      ],
+      tags: ["Multi-camera", "Highlight film", "Full video"]
+    },
+    {
       title: "Classic Package",
       category: "Photo + Video",
-      tab: "Photo + Video",
+      tab: "Photo & Video",
       price: "GHS 4,500",
       tone: "birthday",
       photo: "assets/photos/studio-portrait.jpg",
@@ -1051,9 +1136,45 @@ window.defaultPackages = {
         "Videography coverage",
         "100+ edited photos",
         "Full event video",
-        "2–3 minute highlight"
+        "2–3 minute highlight reel"
       ],
-      tags: ["Full video", "photo", "highlight"]
+      tags: ["Photo + Video", "100+ photos", "Highlight reel"]
+    },
+    {
+      title: "Gold Package",
+      category: "Photo + Video",
+      tab: "Photo & Video",
+      price: "GHS 6,500",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Professional photography",
+        "Cinematic videography",
+        "150+ edited photos",
+        "Full event documentary",
+        "3–5 minute highlight film",
+        "Social media teaser"
+      ],
+      tags: ["Professional photo", "Cinematic video", "150+ photos"]
+    },
+    {
+      title: "Signature Package",
+      category: "Photo + Video",
+      tab: "Photo & Video",
+      price: "GHS 8,500",
+      tone: "birthday",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Two photographers",
+        "Two videographers",
+        "Premium editing",
+        "250+ edited photos",
+        "Cinematic birthday film",
+        "Full event documentary",
+        "Same-day social media content",
+        "One framed portrait"
+      ],
+      tags: ["2 photographers", "2 videographers", "250+ photos", "Framed portrait"]
     }
   ]
 };
