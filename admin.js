@@ -438,9 +438,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (session) {
-        const migrationKey = 'birthday_packages_migrated_v3';
+        const migrationKey = 'birthday_packages_migrated_v4';
         if (!localStorage.getItem(migrationKey)) {
-          console.log("Running automatic birthday packages migration (v3)...");
+          console.log("Running automatic birthday packages migration (v4)...");
           
           // 1. Delete ONLY the old in-studio birthday and child birthday packages
           await window.supabaseClient
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .eq('location', 'In-studio')
             .in('category', ['Birthday shoot', 'Child Birthday']);
             
-          // 2. Insert new packages
+          // 2. Insert new packages (both Child Birthday and restored Birthday Shoot packages)
           const newPackages = [
             {
               title: "Silver Package",
@@ -534,6 +534,84 @@ document.addEventListener('DOMContentLoaded', async () => {
               ],
               tags: ["Luxury Experience", "Custom Theme", "Premium Props", "Family Portraits", "Birthday Reel", "Behind-The-Scenes", "Framed Portrait", "Photo Album"],
               tab: null
+            },
+            {
+              title: "Mini Birthday Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 300",
+              tone: "portrait",
+              photo_url: "assets/photos/studio-portrait.jpg",
+              bullets: [
+                "30-minute studio session.",
+                "1 outfit.",
+                "1 backdrop.",
+                "5 professionally edited photos.",
+                "Soft copies delivered online."
+              ],
+              tags: ["5 photos", "1 outfit", "30 mins"],
+              featured: false,
+              tab: null
+            },
+            {
+              title: "Classic Birthday Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 500",
+              tone: "portrait",
+              photo_url: "assets/photos/traditional-props.jpg",
+              bullets: [
+                "1-hour studio session.",
+                "Up to 2 outfit changes.",
+                "2 backdrop setups.",
+                "10 professionally edited photos.",
+                "Basic retouching.",
+                "Soft copies delivered online."
+              ],
+              tags: ["10 photos", "2 outfits", "1 hour"],
+              featured: false,
+              tab: null
+            },
+            {
+              title: "Premium Birthday Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 1,000",
+              tone: "portrait",
+              photo_url: "assets/photos/studio-portrait.jpg",
+              bullets: [
+                "2-hour studio session.",
+                "Up to 3 outfit changes.",
+                "Multiple backdrop setups.",
+                "15 professionally edited photos.",
+                "Advanced beauty retouching.",
+                "Social media-ready images.",
+                "30-second birthday reel."
+              ],
+              tags: ["15 photos", "3 outfits", "Reel included"],
+              featured: false,
+              tab: null
+            },
+            {
+              title: "Luxury Birthday Package",
+              category: "Birthday shoot",
+              location: "In-studio",
+              price: "GHS 2,000",
+              tone: "portrait",
+              photo_url: "assets/photos/traditional-props.jpg",
+              bullets: [
+                "Up to 3-hour studio session.",
+                "Unlimited outfit changes.",
+                "Premium themed setup.",
+                "25 edited photos.",
+                "Cinematic birthday reel.",
+                "Premium retouching.",
+                "Professional makeup service.",
+                "One framed portrait (A3 size)."
+              ],
+              tags: ["25 photos", "Makeup included", "A3 portrait"],
+              featured: false,
+              tab: null
             }
           ];
           
@@ -543,13 +621,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             
           if (!insErr) {
             localStorage.setItem(migrationKey, 'true');
-            console.log("Automatic birthday packages migration (v3) completed successfully!");
+            console.log("Automatic birthday packages migration (v4) completed successfully!");
             location.reload();
             return;
           } else {
             console.error("Migration insert failed:", insErr);
           }
-        }
+        }}
       }
     } catch (err) {
       console.error("Migration error:", err);
