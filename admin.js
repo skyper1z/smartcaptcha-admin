@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       // 2. Restore missing packages
-      const { data: pkgData } = await window.supabaseClient.from('packages').select('title,tone');
+      let { data: pkgData } = await window.supabaseClient.from('packages').select('title,tone');
       if (pkgData) {
         // 2b. Sync Naming Ceremony packages if out of sync
         const namingPackagesInDB = pkgData.filter(p => p.tone === 'naming');
@@ -107,8 +107,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           } else {
             console.log("Naming Ceremony packages synchronized successfully.");
           }
-          loadPackages();
-          return;
+          // Refetch packages to get latest state
+          const { data: refetchedPkgData } = await window.supabaseClient.from('packages').select('title,tone');
+          if (refetchedPkgData) {
+            pkgData = refetchedPkgData;
+          }
         }
 
         const existingKeys = new Set(pkgData.map(p => `${p.title.trim().toLowerCase()}|${p.tone.trim().toLowerCase()}`));
