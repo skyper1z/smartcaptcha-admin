@@ -46,6 +46,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadGallery();
     loadPackages();
     loadEventTypes();
+    autoRestoreMissingData();
+  }
+
+  async function autoRestoreMissingData() {
+    try {
+      // 1. Restore 'others' if missing
+      const { data: etData } = await window.supabaseClient.from('event_types').select('*').eq('key', 'others');
+      if (etData && etData.length === 0) {
+        console.log("Restoring missing 'others' event type...");
+        await window.supabaseClient.from('event_types').insert({
+          key: 'others',
+          label: 'Other Events',
+          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+          tabs: ['Classic', 'Premium', 'Luxury']
+        });
+      }
+
+      // 2. Restore missing packages
+      const { data: pkgData } = await window.supabaseClient.from('packages').select('title,tone');
+      if (pkgData) {
+        const existingKeys = new Set(pkgData.map(p => `${p.title.trim().toLowerCase()}|${p.tone.trim().toLowerCase()}`));
+        const missing = [];
+        
+        for (const [tone, list] of Object.entries(window.defaultPackages)) {
+          list.forEach(p => {
+            const key = `${p.title.trim().toLowerCase()}|${p.tone.trim().toLowerCase()}`;
+            if (!existingKeys.has(key)) {
+              missing.push(p);
+            }
+          });
+        }
+
+        if (missing.length > 0) {
+          console.log(`Auto-restoring ${missing.length} missing packages...`);
+          const toInsert = missing.map(p => ({
+            category: p.category,
+            title: p.title,
+            tab: p.tab || null,
+            location: p.location || null,
+            price: p.price,
+            tone: p.tone,
+            photo_url: p.photo || null,
+            bullets: p.bullets || [],
+            tags: p.tags || [],
+            featured: p.featured || false
+          }));
+          const { error: insertErr } = await window.supabaseClient.from('packages').insert(toInsert);
+          if (insertErr) {
+            console.error('Error auto-inserting missing packages:', insertErr.message);
+          } else {
+            console.log('Restored packages successfully.');
+            loadPackages();
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error auto-restoring missing data:', err);
+    }
   }
 
   // Auth Listener
