@@ -63,9 +63,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
 
+      // 1b. Update Naming Ceremony event type tabs if they are using the old tabs
+      const { data: namingEtData } = await window.supabaseClient.from('event_types').select('*').eq('key', 'naming');
+      if (namingEtData && namingEtData.length > 0) {
+        const expectedTabs = ["Photo only", "Video only", "Photo & Video", "Live Streaming"];
+        const namingRow = namingEtData[0];
+        const needsTabsUpdate = namingRow.tabs.length !== expectedTabs.length ||
+                                namingRow.tabs.some((t, i) => t !== expectedTabs[i]);
+        if (needsTabsUpdate) {
+          console.log("Updating Naming Ceremony tabs in event_types database table...");
+          await window.supabaseClient.from('event_types').update({ tabs: expectedTabs }).eq('key', 'naming');
+        }
+      }
+
       // 2. Restore missing packages
       const { data: pkgData } = await window.supabaseClient.from('packages').select('title,tone');
       if (pkgData) {
+        // 2b. Sync Naming Ceremony packages if out of sync
+        const namingPackagesInDB = pkgData.filter(p => p.tone === 'naming');
+        const expectedNamingTitles = new Set(window.defaultPackages.naming.map(p => p.title.toLowerCase().trim()));
+        
+        const needsNamingSync = namingPackagesInDB.length !== window.defaultPackages.naming.length || 
+                                namingPackagesInDB.some(p => !expectedNamingTitles.has(p.title.toLowerCase().trim()));
+        
+        if (needsNamingSync) {
+          console.log("Naming Ceremony packages are out of sync in database. Synchronizing...");
+          await window.supabaseClient.from('packages').delete().eq('tone', 'naming');
+          const toInsertNaming = window.defaultPackages.naming.map(p => ({
+            category: p.category,
+            title: p.title,
+            tab: p.tab || null,
+            location: p.location || null,
+            price: p.price,
+            tone: p.tone,
+            photo_url: p.photo || null,
+            bullets: p.bullets || [],
+            tags: p.tags || [],
+            featured: p.featured || false
+          }));
+          const { error: syncErr } = await window.supabaseClient.from('packages').insert(toInsertNaming);
+          if (syncErr) {
+            console.error("Error syncing Naming Ceremony packages:", syncErr.message);
+          } else {
+            console.log("Naming Ceremony packages synchronized successfully.");
+          }
+          loadPackages();
+          return;
+        }
+
         const existingKeys = new Set(pkgData.map(p => `${p.title.trim().toLowerCase()}|${p.tone.trim().toLowerCase()}`));
         const missing = [];
         
@@ -836,7 +881,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       key: "naming",
       label: "Naming Ceremony",
       icon: ICON_PRESETS.calendar,
-      tabs: ["Essential", "Classic", "Premium"]
+      tabs: ["Photo only", "Video only", "Photo & Video", "Live Streaming"]
     },
     {
       key: "corporate",

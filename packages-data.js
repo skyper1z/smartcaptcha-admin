@@ -314,57 +314,169 @@ window.defaultPackages = {
   // ─── NAMING CEREMONY ────────────────────────────────────────────────────────
   naming: [
     {
-      title: "Naming Essential",
-      category: "Ceremony coverage",
-      tab: "Essential",
-      price: "GHS 1,500",
+      title: "Silver Package",
+      category: "Photography",
+      tab: "Photo only",
+      price: "GHS 2,000",
       tone: "naming",
       photo: "assets/photos/studio-portrait.jpg",
-      featured: true,
       bullets: [
-        "3-hour ceremony coverage.",
-        "1 photographer.",
-        "20 professionally edited photos.",
-        "Online delivery via WhatsApp or cloud link.",
-        "Ideal for intimate family outdoorings."
+        "Up to 4 hours coverage",
+        "One professional photographer",
+        "100+ edited high-resolution images",
+        "Family and group portraits",
+        "Online gallery delivery",
+        "Premium retouching"
       ],
-      tags: ["20 photos", "3 hours", "Online delivery"]
+      tags: ["4 hours", "1 photographer", "100+ photos"]
     },
     {
-      title: "Naming Classic",
-      category: "Ceremony coverage",
-      tab: "Classic",
+      title: "Gold Package",
+      category: "Photography",
+      tab: "Photo only",
       price: "GHS 3,000",
       tone: "naming",
       photo: "assets/photos/studio-portrait.jpg",
       bullets: [
-        "5-hour event coverage.",
-        "1 photographer and 1 videographer.",
-        "30 professionally edited photos.",
-        "Video highlights reel.",
-        "Beautifully presented online gallery.",
-        "Drone aerial shots of venue."
+        "Up to 5 hours coverage",
+        "One professional photographer",
+        "150+ edited images",
+        "Advanced retouching",
+        "Same-day photo highlights",
+        "One framed portrait (A3)"
       ],
-      tags: ["30 photos", "Video reel", "Drone"]
+      tags: ["5 hours", "150+ photos", "A3 frame"]
     },
     {
-      title: "Naming Premium",
-      category: "Ceremony coverage",
-      tab: "Premium",
-      price: "GHS 5,000",
+      title: "Platinum Package",
+      category: "Photography",
+      tab: "Photo only",
+      price: "GHS 4,500",
       tone: "naming",
-      photo: "assets/photos/traditional-props.jpg",
+      photo: "assets/photos/studio-portrait.jpg",
       bullets: [
-        "Full-day ceremony and reception coverage.",
-        "1 photographer and 1 videographer.",
-        "50 professionally edited photos.",
-        "Cinematic event film.",
-        "Live streaming to family abroad.",
-        "Drone aerial footage.",
-        "Premium photobook.",
-        "All edited soft copies."
+        "Full event coverage",
+        "Two photographers",
+        "200+ edited images",
+        "Premium retouching",
+        "Family portrait session",
+        "One framed portrait",
+        "Premium online gallery"
       ],
-      tags: ["50 photos", "Live stream", "Photobook"]
+      tags: ["Full coverage", "2 photographers", "200+ photos"]
+    },
+    {
+      title: "Standard Package",
+      category: "Videography",
+      tab: "Video only",
+      price: "GHS 2,500",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Up to 4 hours coverage",
+        "One videographer",
+        "Full event recording",
+        "2–3 minute highlight video",
+        "Professional editing"
+      ],
+      tags: ["4 hours", "1 videographer", "Highlight video"]
+    },
+    {
+      title: "Premium Package",
+      category: "Videography",
+      tab: "Video only",
+      price: "GHS 4,000",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Multi-camera coverage",
+        "Cinematic storytelling",
+        "3–5 minute highlight film",
+        "Full event documentary",
+        "Social media teaser"
+      ],
+      tags: ["Multi-camera", "Highlight film", "Documentary"]
+    },
+    {
+      title: "Classic Package",
+      category: "Photo + Video",
+      tab: "Photo & Video",
+      price: "GHS 4,500",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Photography coverage",
+        "Videography coverage",
+        "100+ edited photos",
+        "Full event video",
+        "2–3 minute highlight film"
+      ],
+      tags: ["Photo + Video", "100+ photos", "Highlight film"]
+    },
+    {
+      title: "Gold Package",
+      category: "Photo + Video",
+      tab: "Photo & Video",
+      price: "GHS 6,500",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Professional photography",
+        "Cinematic videography",
+        "150+ edited photos",
+        "Full event documentary",
+        "3–5 minute highlight film",
+        "Social media teaser"
+      ],
+      tags: ["Professional photo", "Cinematic video", "150+ photos"]
+    },
+    {
+      title: "Signature Package",
+      category: "Photo + Video",
+      tab: "Photo & Video",
+      price: "GHS 8,500",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Two photographers",
+        "Two videographers",
+        "Premium editing",
+        "200+ edited photos",
+        "Cinematic highlight film",
+        "Full event documentary",
+        "Same-day social media content",
+        "One framed portrait"
+      ],
+      tags: ["2 photographers", "2 videographers", "200+ photos", "Framed portrait"]
+    },
+    {
+      title: "Standard Live Streaming",
+      category: "Live Streaming",
+      tab: "Live Streaming",
+      price: "GHS 2,500",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Single platform (Facebook or YouTube)",
+        "Professional audio integration",
+        "Event graphics"
+      ],
+      tags: ["Single platform", "Audio integration", "Event graphics"]
+    },
+    {
+      title: "Premium Live Streaming",
+      category: "Live Streaming",
+      tab: "Live Streaming",
+      price: "GHS 4,000",
+      tone: "naming",
+      photo: "assets/photos/studio-portrait.jpg",
+      bullets: [
+        "Multi-camera live switching",
+        "Facebook + YouTube",
+        "Backup recording",
+        "Professional graphics"
+      ],
+      tags: ["Multi-camera", "Dual platform", "Backup recording"]
     }
   ],
 
