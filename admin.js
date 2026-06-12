@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           } else {
             console.error("Migration insert failed:", insErr);
           }
-        }}
+        }
       }
     } catch (err) {
       console.error("Migration error:", err);
