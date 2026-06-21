@@ -1255,5 +1255,171 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // -----------------------------------------
+  // ANNOUNCEMENT / POP-UP MANAGER
+  // -----------------------------------------
+  const annForm = document.getElementById('announcement-form');
+  const annStatus = document.getElementById('ann-status');
+  const annSaveBtn = document.getElementById('ann-save-btn');
+  const annPreviewBtn = document.getElementById('ann-preview-btn');
+
+  // Load existing announcement from Supabase
+  async function loadAnnouncement() {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('site_announcements')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.warn('Could not load announcement:', error.message);
+        return;
+      }
+
+      if (data) {
+        document.getElementById('ann-enabled').checked = data.enabled ?? false;
+        document.getElementById('ann-title').value = data.title || '';
+        document.getElementById('ann-badge').value = data.badge || '';
+        document.getElementById('ann-body').value = data.body || '';
+        document.getElementById('ann-code').value = data.promo_code || '';
+        document.getElementById('ann-cta').value = data.cta_text || '';
+        document.getElementById('ann-link').value = data.cta_link || '';
+      }
+    } catch (err) {
+      console.error('Error loading announcement:', err);
+    }
+  }
+
+  // Helper to build the announcement data object from the form
+  function getAnnouncementFormData() {
+    return {
+      enabled: document.getElementById('ann-enabled').checked,
+      title: document.getElementById('ann-title').value.trim(),
+      badge: document.getElementById('ann-badge').value.trim(),
+      body: document.getElementById('ann-body').value.trim(),
+      promo_code: document.getElementById('ann-code').value.trim().toUpperCase(),
+      cta_text: document.getElementById('ann-cta').value.trim(),
+      cta_link: document.getElementById('ann-link').value.trim(),
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  if (annForm) {
+    annForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      annSaveBtn.textContent = 'Saving...';
+      annSaveBtn.disabled = true;
+      annStatus.textContent = '';
+
+      const payload = getAnnouncementFormData();
+
+      try {
+        // Check if a record exists
+        const { data: existing, error: fetchErr } = await window.supabaseClient
+          .from('site_announcements')
+          .select('id')
+          .limit(1)
+          .maybeSingle();
+
+        if (fetchErr && fetchErr.code !== 'PGRST116') throw fetchErr;
+
+        let opError;
+        if (existing) {
+          const { error } = await window.supabaseClient
+            .from('site_announcements')
+            .update(payload)
+            .eq('id', existing.id);
+          opError = error;
+        } else {
+          const { error } = await window.supabaseClient
+            .from('site_announcements')
+            .insert([payload]);
+          opError = error;
+        }
+
+        if (opError) throw opError;
+
+        annStatus.textContent = payload.enabled
+          ? '✅ Announcement saved and is now LIVE on your website!'
+          : '✅ Announcement saved (currently disabled — visitors won\'t see it).';
+        setTimeout(() => annStatus.textContent = '', 5000);
+      } catch (err) {
+        annStatus.textContent = '❌ Error saving: ' + err.message;
+        console.error(err);
+      } finally {
+        annSaveBtn.textContent = 'Save Announcement';
+        annSaveBtn.disabled = false;
+      }
+    });
+  }
+
+  // Preview button — shows the pop-up on this admin page for testing
+  if (annPreviewBtn) {
+    annPreviewBtn.addEventListener('click', () => {
+      const data = getAnnouncementFormData();
+      showAnnouncementPopup(data, true);
+    });
+  }
+
+  // Shared function to render and show the announcement popup
+  function showAnnouncementPopup(data, isPreview = false) {
+    // Remove any existing popup
+    const existing = document.getElementById('sc-announcement-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'sc-announcement-overlay';
+    overlay.innerHTML = `
+      <div class="sc-ann-modal" role="dialog" aria-modal="true" aria-labelledby="sc-ann-title">
+        <button class="sc-ann-close" id="sc-ann-close-btn" aria-label="Close announcement">&times;</button>
+        ${isPreview ? '<div class="sc-ann-preview-badge">🔍 Preview Mode</div>' : ''}
+        ${data.badge ? `<div class="sc-ann-badge">${data.badge}</div>` : ''}
+        ${data.title ? `<h2 class="sc-ann-title" id="sc-ann-title">${data.title}</h2>` : ''}
+        ${data.body ? `<p class="sc-ann-body">${data.body.replace(/\n/g, '<br>')}</p>` : ''}
+        ${data.promo_code ? `
+          <div class="sc-ann-code-wrap">
+            <span class="sc-ann-code-label">Your promo code</span>
+            <div class="sc-ann-code" id="sc-ann-promo-code">${data.promo_code}</div>
+            <button class="sc-ann-copy-btn" id="sc-ann-copy-btn" onclick="
+              navigator.clipboard.writeText('${data.promo_code}');
+              this.textContent = '✓ Copied!';
+              setTimeout(() => this.textContent = 'Copy Code', 1500);
+            ">Copy Code</button>
+          </div>
+        ` : ''}
+        ${(data.cta_text && data.cta_link) ? `
+          <a href="${data.cta_link}" target="_blank" rel="noopener noreferrer" class="sc-ann-cta-btn">${data.cta_text}</a>
+        ` : ''}
+        <button class="sc-ann-dismiss-btn" id="sc-ann-dismiss-btn">Maybe later</button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Trigger animation
+    requestAnimationFrame(() => overlay.classList.add('sc-ann-visible'));
+
+    const close = () => {
+      overlay.classList.remove('sc-ann-visible');
+      setTimeout(() => overlay.remove(), 380);
+    };
+
+    document.getElementById('sc-ann-close-btn').addEventListener('click', close);
+    document.getElementById('sc-ann-dismiss-btn').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  }
+
+  // Load announcement when settings tab is opened (or when logged in)
+  // We hook into tab click to lazy-load
+  document.querySelectorAll('.admin-tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      if (tab.dataset.target === 'announcement') {
+        loadAnnouncement();
+      }
+    });
+  });
+
 });
 

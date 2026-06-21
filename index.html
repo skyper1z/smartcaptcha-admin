@@ -49,6 +49,7 @@
       <div class="tabs admin-tabs">
         <button class="tab active" data-target="gallery">Gallery</button>
         <button class="tab" data-target="packages">Packages</button>
+        <button class="tab" data-target="announcement">📢 Announcement</button>
         <button class="tab" data-target="settings">Settings / Tools</button>
       </div>
 
@@ -168,6 +169,73 @@
         </div>
 
         <div id="admin-packages-list" class="admin-list"></div>
+      </section>
+
+      <!-- ANNOUNCEMENT TAB -->
+      <section id="announcement-tab" class="admin-section hidden">
+        <div class="section-heading">
+          <h2>📢 Site Announcement / Pop-up</h2>
+        </div>
+
+        <div class="tool-card">
+          <h3>Pop-up Message Settings</h3>
+          <p>Control the message that appears as a pop-up when visitors open your website. Toggle it on or off anytime. The pop-up shows once per browser session.</p>
+
+          <form id="announcement-form" style="margin-top: 1.5rem;">
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; background: rgba(0,245,212,0.04); border: 1px solid rgba(0,245,212,0.12); border-radius: 10px; padding: 1rem 1.25rem;">
+              <input type="checkbox" id="ann-enabled" style="width: 18px; height: 18px; accent-color: var(--teal-bright); cursor: pointer; flex-shrink: 0;">
+              <label for="ann-enabled" style="margin-bottom: 0; font-size: 1rem; font-weight: 600; color: #fff; cursor: pointer;">Enable pop-up announcement <span style="font-size:0.82rem; color:var(--muted); font-weight:400;">(turn off to hide from visitors)</span></label>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Pop-up Title</label>
+                <input type="text" id="ann-title" placeholder="e.g., 🎉 Happy Father's Day!" maxlength="80">
+              </div>
+              <div class="form-group">
+                <label>Emoji / Badge Label <span style="font-size:0.78rem; color:var(--muted); font-weight:400;">(optional, appears above title)</span></label>
+                <input type="text" id="ann-badge" placeholder="e.g., Special Offer · Today Only" maxlength="60">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Message Body</label>
+              <textarea id="ann-body" rows="4" placeholder="Write your message here. E.g., To celebrate Father's Day, we're offering 15% off all portrait packages booked today!"></textarea>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Promo / Discount Code <span style="font-size:0.78rem; color:var(--muted); font-weight:400;">(optional)</span></label>
+                <input type="text" id="ann-code" placeholder="e.g., DAD15" maxlength="30" style="text-transform: uppercase; letter-spacing: 0.1em;">
+              </div>
+              <div class="form-group">
+                <label>Button Text <span style="font-size:0.78rem; color:var(--muted); font-weight:400;">(optional)</span></label>
+                <input type="text" id="ann-cta" placeholder="e.g., Book Now on WhatsApp" maxlength="50">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Button Link <span style="font-size:0.78rem; color:var(--muted); font-weight:400;">(optional — leave blank to skip button)</span></label>
+              <input type="url" id="ann-link" placeholder="e.g., https://wa.me/233244101740">
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="ann-save-btn" class="button primary">Save Announcement</button>
+              <button type="button" id="ann-preview-btn" class="button">Preview Pop-up</button>
+            </div>
+            <p id="ann-status" class="status-text"></p>
+          </form>
+        </div>
+
+        <div class="tool-card" style="margin-top: 1.5rem; background: rgba(255,190,11,0.04); border-color: rgba(255,190,11,0.15);">
+          <h3 style="color: var(--gold);">💡 Tips</h3>
+          <ul style="color: var(--muted); line-height: 1.8; font-size: 0.9rem; padding-left: 1.25rem;">
+            <li>The pop-up only shows <strong style="color:#fff;">once per browser session</strong> — visitors won't see it again until they close and reopen the browser tab.</li>
+            <li>Leave the <strong style="color:#fff;">Promo Code</strong> field empty if you have no discount to share.</li>
+            <li>Leave the <strong style="color:#fff;">Button Text</strong> and <strong style="color:#fff;">Button Link</strong> empty to skip the CTA button.</li>
+            <li>Use the <strong style="color:#fff;">Preview Pop-up</strong> button to see how it looks without saving.</li>
+          </ul>
+        </div>
       </section>
 
       <!-- SETTINGS TAB -->
