@@ -1344,7 +1344,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         annStatus.textContent = payload.enabled
           ? '✅ Announcement saved and is now LIVE on your website!'
           : '✅ Announcement saved (currently disabled — visitors won\'t see it).';
-        setTimeout(() => annStatus.textContent = '', 5000);
+        setTimeout(() => annStatus.textContent = '', 6000);
+
+        // ── Trigger Web Push Notifications if announcement is enabled ──────
+        if (payload.enabled) {
+          sendPushNotification(payload);
+        }
       } catch (err) {
         annStatus.textContent = '❌ Error saving: ' + err.message;
         console.error(err);
@@ -1352,6 +1357,127 @@ document.addEventListener('DOMContentLoaded', async () => {
         annSaveBtn.textContent = 'Save Announcement';
         annSaveBtn.disabled = false;
       }
+    });
+  }
+
+  // ── Send push notification via Supabase Edge Function ─────────────────────
+  async function sendPushNotification(payload, testMode = false) {
+    const pushTestStatus = document.getElementById('push-test-status');
+    const statusEl = testMode ? pushTestStatus : null;
+
+    try {
+      const session = await window.supabaseClient.auth.getSession();
+      const token   = session?.data?.session?.access_token;
+      if (!token) {
+        console.warn('[Admin Push] No auth token — cannot call Edge Function.');
+        return;
+      }
+
+      // Build the notification payload from the announcement data
+      const notifPayload = {
+        title:    payload.title    || '📸 Smart Captcha Studios',
+        body:     payload.body     || 'You have a new update from Smart Captcha Studios.',
+        url:      payload.cta_link || 'https://smartcaptchagh.com/',
+        category: 'announcement'
+      };
+
+      if (statusEl) statusEl.textContent = 'Sending…';
+
+      const supabaseUrl = window.supabaseClient.supabaseUrl
+        || 'https://kcatufanwxhcoagyeskf.supabase.co';
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/send-push`,
+        {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(notifPayload)
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        const msg = testMode
+          ? `✅ Test push sent to ${result.sent ?? 0} subscriber(s)!`
+          : `📲 Push notification sent to ${result.sent ?? 0} subscriber(s).`;
+
+        if (statusEl) {
+          statusEl.textContent = msg;
+          setTimeout(() => statusEl.textContent = '', 5000);
+        } else {
+          // Show in annStatus below the form
+          annStatus.textContent = (annStatus.textContent + ' ' + msg).trim();
+          setTimeout(() => annStatus.textContent = '', 7000);
+        }
+
+        // Refresh subscriber count display
+        loadPushSubscriberCount();
+
+        console.log('[Admin Push] Result:', result);
+      } else {
+        const errMsg = result.error || 'Unknown error';
+        console.error('[Admin Push] Edge Function error:', errMsg);
+        if (statusEl) {
+          statusEl.textContent = '❌ Push failed: ' + errMsg;
+          setTimeout(() => statusEl.textContent = '', 5000);
+        }
+      }
+    } catch (err) {
+      console.error('[Admin Push] Network error calling Edge Function:', err);
+      if (statusEl) {
+        statusEl.textContent = '❌ Network error: ' + err.message;
+        setTimeout(() => statusEl.textContent = '', 5000);
+      }
+    }
+  }
+
+  // ── Load push subscriber count from Supabase ───────────────────────────────
+  async function loadPushSubscriberCount() {
+    const countEl = document.getElementById('push-subscriber-count');
+    if (!countEl) return;
+    try {
+      const { count, error } = await window.supabaseClient
+        .from('push_subscriptions')
+        .select('id', { count: 'exact', head: true });
+
+      if (error) {
+        // Table might not exist yet — show dash
+        countEl.textContent = '—';
+        return;
+      }
+      countEl.textContent = count ?? 0;
+    } catch {
+      countEl.textContent = '—';
+    }
+  }
+
+  // ── Wire up push card buttons ──────────────────────────────────────────────
+  const pushRefreshBtn = document.getElementById('push-refresh-count-btn');
+  const pushTestBtn    = document.getElementById('push-test-btn');
+  const pushTestStatus = document.getElementById('push-test-status');
+
+  if (pushRefreshBtn) {
+    pushRefreshBtn.addEventListener('click', loadPushSubscriberCount);
+  }
+
+  if (pushTestBtn) {
+    pushTestBtn.addEventListener('click', async () => {
+      // Use current form data for the test push
+      const data = getAnnouncementFormData();
+      if (!data.title && !data.body) {
+        pushTestStatus.textContent = '⚠️ Fill in a Title or Body first.';
+        setTimeout(() => pushTestStatus.textContent = '', 3000);
+        return;
+      }
+      pushTestBtn.disabled = true;
+      pushTestBtn.textContent = 'Sending…';
+      await sendPushNotification(data, true);
+      pushTestBtn.disabled = false;
+      pushTestBtn.textContent = '📲 Send Test Push';
     });
   }
 
@@ -1411,12 +1537,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   }
 
-  // Load announcement when settings tab is opened (or when logged in)
-  // We hook into tab click to lazy-load
+  // Load announcement + push subscriber count when the announcement tab is opened
   document.querySelectorAll('.admin-tabs .tab').forEach(tab => {
     tab.addEventListener('click', () => {
       if (tab.dataset.target === 'announcement') {
         loadAnnouncement();
+        loadPushSubscriberCount();
       }
     });
   });
