@@ -1124,22 +1124,60 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     html += loadedEventTypes.map(evt => {
       const isSystemEvent = ['wedding', 'funeral', 'portrait', 'streaming'].includes(evt.key);
-      const deleteBtn = isFallback 
-        ? '' 
-        : `<button class="button danger delete-evt-btn" data-key="${evt.key}" ${isSystemEvent ? 'disabled title="Core system events cannot be deleted"' : ''}>Delete</button>`;
+      const tabsStr = Array.isArray(evt.tabs) ? evt.tabs.join(', ') : (evt.tabs || '');
+
+      const actionBtns = isFallback ? '' : `
+        <button class="button edit-evt-btn" data-key="${evt.key}" style="margin-right:0.4rem;">Edit</button>
+        <button class="button danger delete-evt-btn" data-key="${evt.key}" ${isSystemEvent ? 'disabled title="Core system events cannot be deleted"' : ''}>Delete</button>
+      `;
+
+      // Build icon preset options list for the inline edit select
+      const iconPresetOptions = Object.keys(ICON_PRESETS).map(k => `<option value="${k}">${k.charAt(0).toUpperCase() + k.slice(1)}</option>`).join('') + '<option value="custom">Custom SVG Code</option>';
 
       return `
-        <div class="admin-item" style="padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px;">
-          <div>
-            <span style="font-size: 1.2rem; margin-right: 0.5rem; display: inline-flex; align-items: center; vertical-align: middle; width: 20px; height: 20px; color: var(--gold); fill: currentColor;">
-              ${evt.icon || '📅'}
-            </span>
-            <strong style="font-size: 1rem; color: #fff; margin-left: 0.5rem; vertical-align: middle;">${evt.label}</strong> 
-            <code style="color: var(--gold); font-size: 0.8rem; margin-left: 0.5rem; background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; vertical-align: middle;">${evt.key}</code>
-            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem;">Sub-tabs: ${Array.isArray(evt.tabs) ? evt.tabs.join(', ') : evt.tabs}</div>
+        <div class="admin-item evt-item" data-key="${evt.key}" style="margin-bottom: 0.5rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
+          <!-- Summary row -->
+          <div class="evt-summary-row" style="padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 1.2rem; margin-right: 0.5rem; display: inline-flex; align-items: center; vertical-align: middle; width: 20px; height: 20px; color: var(--gold); fill: currentColor;">
+                ${evt.icon || '📅'}
+              </span>
+              <strong style="font-size: 1rem; color: #fff; margin-left: 0.5rem; vertical-align: middle;">${evt.label}</strong>
+              <code style="color: var(--gold); font-size: 0.8rem; margin-left: 0.5rem; background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; vertical-align: middle;">${evt.key}</code>
+              <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem;">Sub-tabs: ${tabsStr || '<em>none</em>'}</div>
+            </div>
+            <div>
+              ${actionBtns}
+            </div>
           </div>
-          <div>
-            ${deleteBtn}
+
+          <!-- Inline edit form (hidden by default) -->
+          <div class="evt-edit-form hidden" style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.07); background: rgba(0,245,212,0.03);">
+            <div class="form-grid" style="margin-bottom:0.75rem;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Event Name / Label</label>
+                <input type="text" class="evt-edit-label" value="${evt.label.replace(/"/g, '&quot;')}" placeholder="e.g., Wedding">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Sub-Tabs <small style="color:var(--muted);font-weight:400;">(comma-separated)</small></label>
+                <input type="text" class="evt-edit-tabs" value="${tabsStr.replace(/"/g, '&quot;')}" placeholder="e.g., Photo &amp; Video, Live Streaming">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Icon Preset</label>
+                <select class="evt-edit-icon-preset">
+                  ${iconPresetOptions}
+                </select>
+              </div>
+            </div>
+            <div class="form-group evt-edit-custom-icon-group hidden" style="margin-bottom:0.75rem;">
+              <label>Custom Icon SVG Code</label>
+              <textarea class="evt-edit-custom-icon" rows="2" placeholder='e.g., &lt;svg viewBox="0 0 24 24" ...&gt;...&lt;/svg&gt;'></textarea>
+            </div>
+            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+              <button class="button primary evt-save-btn" data-key="${evt.key}">Save Changes</button>
+              <button class="button evt-cancel-btn" data-key="${evt.key}">Cancel</button>
+              <span class="evt-edit-status" style="font-size:0.85rem;color:var(--teal-bright);"></span>
+            </div>
           </div>
         </div>
       `;
@@ -1147,8 +1185,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     listContainer.innerHTML = html;
 
-    // Attach delete listeners
     if (!isFallback) {
+      // ── Delete listeners ──────────────────────────────────────────
       listContainer.querySelectorAll('.delete-evt-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const key = btn.dataset.key;
@@ -1163,6 +1201,127 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Failed to delete event type: ' + error.message);
           } else {
             loadEventTypes();
+          }
+        });
+      });
+
+      // ── Edit (open form) listeners ────────────────────────────────
+      listContainer.querySelectorAll('.edit-evt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.key;
+          const item = listContainer.querySelector(`.evt-item[data-key="${key}"]`);
+          if (!item) return;
+
+          const editForm = item.querySelector('.evt-edit-form');
+          const isOpen = !editForm.classList.contains('hidden');
+
+          if (isOpen) {
+            editForm.classList.add('hidden');
+            btn.textContent = 'Edit';
+            return;
+          }
+
+          // Close any other open edit forms
+          listContainer.querySelectorAll('.evt-edit-form').forEach(f => f.classList.add('hidden'));
+          listContainer.querySelectorAll('.edit-evt-btn').forEach(b => b.textContent = 'Edit');
+
+          // Open this one
+          editForm.classList.remove('hidden');
+          btn.textContent = 'Close';
+
+          // Pre-select icon preset based on current icon value
+          const evt = loadedEventTypes.find(e => e.key === key);
+          const presetSelect = editForm.querySelector('.evt-edit-icon-preset');
+          const customIconGroup = editForm.querySelector('.evt-edit-custom-icon-group');
+          const customIconTA = editForm.querySelector('.evt-edit-custom-icon');
+
+          let matchedPreset = 'custom';
+          for (const [pKey, pVal] of Object.entries(ICON_PRESETS)) {
+            if (evt && evt.icon === pVal) { matchedPreset = pKey; break; }
+          }
+          presetSelect.value = matchedPreset;
+          if (matchedPreset === 'custom') {
+            customIconGroup.classList.remove('hidden');
+            customIconTA.value = evt ? (evt.icon || '') : '';
+          } else {
+            customIconGroup.classList.add('hidden');
+          }
+
+          presetSelect.onchange = () => {
+            if (presetSelect.value === 'custom') {
+              customIconGroup.classList.remove('hidden');
+            } else {
+              customIconGroup.classList.add('hidden');
+            }
+          };
+
+          editForm.querySelector('.evt-edit-label').focus();
+        });
+      });
+
+      // ── Cancel listeners ──────────────────────────────────────────
+      listContainer.querySelectorAll('.evt-cancel-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.key;
+          const item = listContainer.querySelector(`.evt-item[data-key="${key}"]`);
+          if (!item) return;
+          item.querySelector('.evt-edit-form').classList.add('hidden');
+          item.querySelector('.edit-evt-btn').textContent = 'Edit';
+        });
+      });
+
+      // ── Save listeners ────────────────────────────────────────────
+      listContainer.querySelectorAll('.evt-save-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const key = btn.dataset.key;
+          const item = listContainer.querySelector(`.evt-item[data-key="${key}"]`);
+          if (!item) return;
+
+          const editForm = item.querySelector('.evt-edit-form');
+          const statusEl = editForm.querySelector('.evt-edit-status');
+          const newLabel = editForm.querySelector('.evt-edit-label').value.trim();
+          const newTabsRaw = editForm.querySelector('.evt-edit-tabs').value;
+          const presetSelect = editForm.querySelector('.evt-edit-icon-preset');
+          const customIconTA = editForm.querySelector('.evt-edit-custom-icon');
+
+          const newTabs = newTabsRaw.split(',').map(t => t.trim()).filter(t => t.length > 0);
+
+          if (!newLabel) {
+            statusEl.style.color = '#ff8888';
+            statusEl.textContent = '❌ Label cannot be empty.';
+            return;
+          }
+          if (newTabs.length === 0) {
+            statusEl.style.color = '#ff8888';
+            statusEl.textContent = '❌ At least one sub-tab is required.';
+            return;
+          }
+
+          let newIcon = '';
+          if (presetSelect.value === 'custom') {
+            newIcon = customIconTA.value.trim();
+          } else {
+            newIcon = ICON_PRESETS[presetSelect.value] || ICON_PRESETS.star;
+          }
+
+          statusEl.style.color = 'var(--teal-bright)';
+          statusEl.textContent = 'Saving…';
+          btn.disabled = true;
+
+          try {
+            const { error } = await window.supabaseClient
+              .from('event_types')
+              .update({ label: newLabel, tabs: newTabs, icon: newIcon })
+              .eq('key', key);
+
+            if (error) throw error;
+
+            statusEl.textContent = '✅ Saved!';
+            setTimeout(() => { loadEventTypes(); }, 800);
+          } catch (err) {
+            statusEl.style.color = '#ff8888';
+            statusEl.textContent = '❌ ' + err.message;
+            btn.disabled = false;
           }
         });
       });
