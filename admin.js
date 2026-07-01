@@ -1004,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       key: "funeral",
       label: "Funeral",
       icon: ICON_PRESETS.people,
-      tabs: ["Coverage", "Live Streaming", "Full Package"]
+      tabs: ["Photo only", "Live Streaming", "Full Package"]
     },
     {
       key: "naming",
