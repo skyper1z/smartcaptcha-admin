@@ -1036,3 +1036,12 @@
 .pricing-edit input[name="note"] { width: 14rem; }
 .pricing-edit p { flex-basis: 100%; margin: 0; }
 .pricing-source-bar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0.5rem 0; }
+.inbox-scope { display: inline-flex; gap: 0.4rem; align-items: center; font-size: 0.85rem; color: var(--muted); }
+.inbox-scope select {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  font: inherit;
+}
