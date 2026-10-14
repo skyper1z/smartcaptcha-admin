@@ -1147,8 +1147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (statusEl) statusEl.textContent = 'Sending…';
 
-      const supabaseUrl = window.supabaseClient.supabaseUrl
-        || 'https://kcatufanwxhcoagyeskf.supabase.co';
+      const supabaseUrl = window.SMARTCAP_ENV.supabaseUrl;
 
       const response = await fetch(
         `${supabaseUrl}/functions/v1/send-push`,

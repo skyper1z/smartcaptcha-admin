@@ -343,13 +343,15 @@
   box-shadow: 0 6px 16px rgba(255, 190, 11, 0.15);
 }
 
-.admin-item-actions .button.danger {
+.admin-item-actions .button.danger,
+.pricing-actions .button.danger {
   background: rgba(255, 75, 75, 0.12);
   color: #ff4b4b;
   border: 1px solid rgba(255, 75, 75, 0.3);
 }
 
-.admin-item-actions .button.danger:hover {
+.admin-item-actions .button.danger:hover,
+.pricing-actions .button.danger:hover {
   background: rgba(255, 75, 75, 0.22);
   border-color: #ff4b4b;
   box-shadow: 0 6px 16px rgba(255, 75, 75, 0.15);
@@ -794,3 +796,76 @@
   }
 }
 
+
+/* Environment badge (shown outside production) */
+.env-badge {
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+
+/* Pricing Review */
+.pricing-muted { color: var(--muted); font-size: 0.85rem; }
+.pricing-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+.pricing-filters select,
+.pricing-filters input {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  font: inherit;
+  min-width: 0;
+}
+.pricing-list { display: grid; gap: 0.75rem; }
+.pricing-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.pricing-main { min-width: 0; }
+.pricing-main h3 { margin: 0 0 0.25rem; font-size: 1rem; color: #fff; }
+.pricing-meta { margin: 0; color: var(--muted); font-size: 0.8rem; overflow-wrap: anywhere; }
+.pricing-price { margin: 0.5rem 0; font-size: 1.05rem; font-weight: 700; color: var(--teal-bright); }
+.pricing-flag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 190, 11, 0.4);
+  color: var(--gold);
+  font-size: 0.72rem;
+}
+.pricing-notes { margin: 0.5rem 0 0; padding-left: 1.1rem; color: var(--gold); font-size: 0.8rem; }
+.pricing-source { margin: 0.5rem 0 0; font-size: 0.78rem; color: var(--muted); }
+.pricing-source a { color: var(--teal); }
+.pricing-actions { display: flex; gap: 0.5rem; align-items: flex-start; flex-shrink: 0; }
+.pricing-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.pricing-badge--approved { color: var(--teal-bright); border-color: var(--teal); }
+.pricing-badge--rejected { color: #ff8888; border-color: rgba(220, 100, 100, 0.5); }
+
+@media (max-width: 640px) {
+  .pricing-row { flex-direction: column; }
+}

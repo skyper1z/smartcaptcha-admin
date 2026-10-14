@@ -43,7 +43,7 @@
 
   <div id="dashboard-container" class="admin-dashboard hidden">
     <header class="admin-header">
-      <div class="brand">Smart Captcha Admin</div>
+      <div class="brand">Smart Captcha Admin <span id="env-badge" class="env-badge hidden"></span></div>
       <button id="logout-btn" class="button">Logout</button>
     </header>
 
@@ -53,6 +53,7 @@
         <button class="tab" data-target="packages">Packages</button>
         <button class="tab" data-target="announcement">📢 Announcement</button>
         <button class="tab" data-target="settings">Settings / Tools</button>
+        <button class="tab" data-target="pricing" id="pricing-tab-btn">💰 Pricing Review</button>
       </div>
 
       <!-- STATISTICS DASHBOARD -->
@@ -274,6 +275,34 @@
         </div>
       </section>
 
+      <!-- PRICING REVIEW TAB (canonical catalog; approvals via Worker API) -->
+      <section id="pricing-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>Pricing Review</h2>
+          <button class="button" id="pricing-refresh">Refresh</button>
+        </div>
+        <p class="pricing-muted">Prices imported from the website wait here until an admin approves them. Only approved prices are shown to customers or used by the WhatsApp assistant.</p>
+        <p id="pricing-role" class="status-text"></p>
+        <div class="pricing-filters">
+          <select id="pricing-status-filter" aria-label="Review status">
+            <option value="pending_review">Pending review</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="all">All</option>
+          </select>
+          <select id="pricing-type-filter" aria-label="Item type">
+            <option value="all">All types</option>
+            <option value="package">Packages</option>
+            <option value="service">General services</option>
+            <option value="addon">Add-ons</option>
+          </select>
+          <input type="search" id="pricing-search" placeholder="Search title or code" aria-label="Search">
+          <span id="pricing-counts" class="pricing-muted"></span>
+        </div>
+        <p id="pricing-status" class="status-text"></p>
+        <div id="pricing-list" class="pricing-list"></div>
+      </section>
+
       <!-- SETTINGS TAB -->
       <section id="settings-tab" class="admin-section hidden">
         <div class="section-heading">
@@ -346,8 +375,9 @@
     </main>
   </div>
 
-  <script src="supabase-client.js"></script>
+  <script src="supabase-client.js?v=2"></script>
   <script src="packages-data.js?v=13"></script>
-  <script src="admin.js?v=13"></script>
+  <script src="admin.js?v=14"></script>
+  <script src="pricing-review.js?v=1"></script>
 </body>
 </html>
