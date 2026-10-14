@@ -981,3 +981,21 @@
   color: #ff4b4b;
   border: 1px solid rgba(255, 75, 75, 0.3);
 }
+
+/* Bookings */
+.bk-items { display: grid; gap: 0.4rem; margin: 0.75rem 0; max-height: 260px; overflow-y: auto; }
+.bk-item { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; }
+.bk-qty { width: 4.5rem; padding: 0.25rem 0.4rem; border-radius: 6px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); color: var(--paper); }
+.bk-quote-result { margin-top: 0.75rem; }
+.bk-lines { margin: 0.25rem 0; padding-left: 1.1rem; }
+.bk-hold { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.bk-hold input, #bk-filter {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  font: inherit;
+  min-width: 0;
+}
+.pricing-badge--pending { color: var(--gold); border-color: rgba(255, 190, 11, 0.5); }

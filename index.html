@@ -55,6 +55,7 @@
         <button class="tab" data-target="settings">Settings / Tools</button>
         <button class="tab" data-target="pricing" id="pricing-tab-btn">💰 Pricing Review</button>
         <button class="tab" data-target="inbox" id="inbox-tab-btn">💬 WhatsApp Inbox</button>
+        <button class="tab" data-target="bookings" id="bookings-tab-btn">📅 Bookings</button>
       </div>
 
       <!-- STATISTICS DASHBOARD -->
@@ -327,6 +328,48 @@
         </div>
       </section>
 
+      <!-- BOOKINGS TAB (actions via Worker API) -->
+      <section id="bookings-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>Bookings &amp; Payments</h2>
+          <button class="button" id="bk-refresh">Refresh</button>
+        </div>
+        <p id="bookings-status" class="status-text"></p>
+
+        <div class="tool-card" id="bk-quote-card">
+          <h3>New quote &amp; date hold</h3>
+          <p class="pricing-muted">Totals and deposits are calculated by the server from approved prices.</p>
+          <div id="bk-quote-items" class="bk-items"></div>
+          <button class="button primary" id="bk-quote-btn">Calculate quote</button>
+          <div id="bk-quote-result" class="bk-quote-result"></div>
+          <form id="bk-hold-form" class="bk-hold hidden">
+            <input type="date" id="bk-event-date" required aria-label="Event date">
+            <input type="text" id="bk-customer" maxlength="120" placeholder="Customer name" aria-label="Customer name">
+            <button type="submit" class="button primary">Hold this date</button>
+          </form>
+        </div>
+
+        <div class="tool-card" style="margin-top: 1.5rem;">
+          <h3>Payments awaiting review</h3>
+          <div id="bk-payments" class="pricing-list"></div>
+        </div>
+
+        <div class="tool-card" style="margin-top: 1.5rem;">
+          <div class="section-heading split">
+            <h3>Bookings</h3>
+            <select id="bk-filter" aria-label="Booking status">
+              <option value="held,payment_submitted,confirmed">Active</option>
+              <option value="held">Held</option>
+              <option value="payment_submitted">Payment submitted</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="expired,cancelled,completed">Closed</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <div id="bk-list" class="pricing-list"></div>
+        </div>
+      </section>
+
       <!-- SETTINGS TAB -->
       <section id="settings-tab" class="admin-section hidden">
         <div class="section-heading">
@@ -405,5 +448,6 @@
   <script src="worker-api.js?v=1"></script>
   <script src="pricing-review.js?v=2"></script>
   <script src="inbox.js?v=2"></script>
+  <script src="bookings.js?v=1"></script>
 </body>
 </html>
