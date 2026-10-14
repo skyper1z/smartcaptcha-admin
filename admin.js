@@ -290,6 +290,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     loadedPackages = data;
 
+    // Once the website uses the canonical catalog, this legacy table no
+    // longer drives prices; say so to avoid edits that change nothing.
+    const note = document.getElementById('packages-source-note');
+    if (note) {
+      const { data: settings } = await window.supabaseClient
+        .from('catalog_settings').select('website_source').maybeSingle();
+      note.classList.toggle('hidden', !(settings && settings.website_source === 'catalog'));
+    }
+
     // Update stats dynamically
     updateStats();
     renderPackages();

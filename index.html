@@ -87,6 +87,7 @@
 
       <!-- PACKAGES TAB -->
       <section id="packages-tab" class="admin-section hidden">
+        <p id="packages-source-note" class="status-text hidden">⚠️ The website and WhatsApp now use the prices in <strong>💰 Pricing Review</strong>. Changes made here do not update the website.</p>
         <div class="section-heading split">
           <h2>Manage Packages</h2>
           <button class="button primary" id="add-package-btn">Add Package</button>
@@ -285,6 +286,7 @@
         </div>
         <p class="pricing-muted">Prices imported from the website wait here until an admin approves them. Only approved prices are shown to customers or used by the WhatsApp assistant.</p>
         <p id="pricing-role" class="status-text"></p>
+        <div id="pricing-source" class="pricing-source-bar"></div>
         <div class="pricing-filters">
           <select id="pricing-status-filter" aria-label="Review status">
             <option value="pending_review">Pending review</option>
@@ -300,6 +302,7 @@
           </select>
           <input type="search" id="pricing-search" placeholder="Search title or code" aria-label="Search">
           <span id="pricing-counts" class="pricing-muted"></span>
+          <button class="button" id="pricing-approve-all" hidden>Approve all shown</button>
         </div>
         <p id="pricing-status" class="status-text"></p>
         <div id="pricing-list" class="pricing-list"></div>
@@ -446,9 +449,9 @@
 
   <script src="supabase-client.js?v=2"></script>
   <script src="packages-data.js?v=13"></script>
-  <script src="admin.js?v=14"></script>
+  <script src="admin.js?v=15"></script>
   <script src="worker-api.js?v=2"></script>
-  <script src="pricing-review.js?v=3"></script>
+  <script src="pricing-review.js?v=4"></script>
   <script src="inbox.js?v=2"></script>
   <script src="bookings.js?v=3"></script>
 </body>

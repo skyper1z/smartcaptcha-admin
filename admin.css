@@ -1035,3 +1035,4 @@
 }
 .pricing-edit input[name="note"] { width: 14rem; }
 .pricing-edit p { flex-basis: 100%; margin: 0; }
+.pricing-source-bar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0.5rem 0; }

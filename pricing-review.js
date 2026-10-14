@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const typeFilter = document.getElementById('pricing-type-filter');
   const searchInput = document.getElementById('pricing-search');
   const countsEl = document.getElementById('pricing-counts');
+  const sourceEl = document.getElementById('pricing-source');
+  const approveAllBtn = document.getElementById('pricing-approve-all');
+  let websiteSource = null;
+  let visiblePending = [];
 
   let items = [];
   let depositRules = [];
@@ -114,8 +118,77 @@ document.addEventListener('DOMContentLoaded', () => {
     items = data;
     loaded = true;
     statusEl.textContent = '';
+    await loadSource();
     render();
   }
+
+  // Which prices the public website shows: the old packages table, or this
+  // approved catalog (shared with the WhatsApp assistant).
+  async function loadSource() {
+    const { data, error } = await window.supabaseClient
+      .from('catalog_settings').select('website_source').maybeSingle();
+    websiteSource = error || !data ? null : data.website_source;
+    if (!websiteSource) {
+      sourceEl.innerHTML = '';
+      return;
+    }
+    const pending = items.filter((item) => pendingPrice(item) || item.review_status === 'pending_review').length;
+    const usingCatalog = websiteSource === 'catalog';
+    const action = !canApprove ? ''
+      : usingCatalog
+        ? '<button class="button" data-source="legacy">Switch website back to old price list</button>'
+        : `<button class="button primary" data-source="catalog" ${pending ? 'disabled' : ''}>Use these prices on the website</button>`;
+    sourceEl.innerHTML = `
+      <span class="inbox-pill ${usingCatalog ? 'inbox-pill--active' : 'inbox-pill--paused'}">
+        Website uses: ${usingCatalog ? 'this catalog (same as WhatsApp)' : 'old price list'}
+      </span>
+      ${action}
+      ${!usingCatalog && pending ? `<span class="pricing-muted">Approve all ${pending} pending item(s) first.</span>` : ''}`;
+  }
+
+  sourceEl.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-source]');
+    if (!button) return;
+    const source = button.dataset.source;
+    if (!confirm(source === 'catalog'
+      ? 'Switch the PUBLIC WEBSITE to these approved prices? The website and WhatsApp will then always show the same prices.'
+      : 'Switch the public website back to the old price list?')) return;
+    try {
+      await workerFetch('/admin/catalog/website-source', { method: 'POST', body: JSON.stringify({ source }) });
+      statusEl.textContent = source === 'catalog' ? 'The website now shows the approved catalog prices.' : 'The website now shows the old price list.';
+      await loadSource();
+    } catch (err) {
+      statusEl.textContent = err.message === 'catalog_has_pending_items'
+        ? 'Some prices are still pending. Approve or reject them first.'
+        : `Could not switch: ${err.message}`;
+    }
+  });
+
+  approveAllBtn.addEventListener('click', async () => {
+    const targets = visiblePending.slice();
+    if (targets.length === 0) return;
+    if (!confirm(`APPROVE all ${targets.length} price(s) currently shown?\n\nCheck the list first — approved prices become visible to customers and usable for quotes.`)) return;
+    approveAllBtn.disabled = true;
+    let done = 0;
+    for (const { item, price } of targets) {
+      statusEl.textContent = `Approving ${done + 1} of ${targets.length}: ${item.title}…`;
+      try {
+        await workerFetch(`/admin/catalog/price-versions/${price.id}/review`, {
+          method: 'POST', body: JSON.stringify({ decision: 'approved' })
+        });
+        price.review_status = 'approved';
+        item.review_status = 'approved';
+        done += 1;
+      } catch (err) {
+        statusEl.textContent = `Stopped at ${item.title}: ${err.message}. ${done} approved.`;
+        break;
+      }
+    }
+    if (done === targets.length) statusEl.textContent = `${done} price(s) approved.`;
+    approveAllBtn.disabled = false;
+    await loadSource();
+    render();
+  });
 
   const newestFirst = (a, b) => Date.parse(b.effective_from) - Date.parse(a.effective_from) || b.id - a.id;
 
@@ -187,6 +260,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (query && !`${item.title} ${item.code} ${item.category}`.toLowerCase().includes(query)) return false;
       return true;
     });
+
+    visiblePending = rows
+      .map((item) => ({ item, price: latestPrice(item) }))
+      .filter(({ price }) => price.review_status === 'pending_review');
+    approveAllBtn.hidden = !canApprove || visiblePending.length === 0;
+    approveAllBtn.textContent = `Approve all ${visiblePending.length} shown`;
 
     if (rows.length === 0) {
       list.innerHTML = '<p class="pricing-muted">No prices match these filters.</p>';
@@ -308,6 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
       price.review_status = decision;
       if (decision === 'approved') item.review_status = 'approved';
       statusEl.textContent = `${item.title}: ${decision}.`;
+      await loadSource();
       render();
     } catch (err) {
       statusEl.textContent = `Could not save decision for ${item.title}: ${err.message}`;
