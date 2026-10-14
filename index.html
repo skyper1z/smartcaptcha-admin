@@ -339,6 +339,8 @@
         <div class="tool-card" id="bk-quote-card">
           <h3>New quote &amp; date hold</h3>
           <p class="pricing-muted">Totals and deposits are calculated by the server from approved prices.</p>
+          <label class="pricing-muted" for="bk-conversation">Customer WhatsApp chat (needed to send payment details)</label>
+          <select id="bk-conversation" class="bk-select"><option value="">— No chat linked —</option></select>
           <div id="bk-quote-items" class="bk-items"></div>
           <button class="button primary" id="bk-quote-btn">Calculate quote</button>
           <div id="bk-quote-result" class="bk-quote-result"></div>
@@ -448,6 +450,6 @@
   <script src="worker-api.js?v=1"></script>
   <script src="pricing-review.js?v=2"></script>
   <script src="inbox.js?v=2"></script>
-  <script src="bookings.js?v=1"></script>
+  <script src="bookings.js?v=2"></script>
 </body>
 </html>

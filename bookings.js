@@ -64,6 +64,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Quote builder ───────────────────────────────────────────
+  async function loadConversations() {
+    const select = el('bk-conversation');
+    if (!can('conversations.read')) {
+      select.disabled = true;
+      return;
+    }
+    const { data } = await window.supabaseClient
+      .from('conversations')
+      .select('id, wa_id, profile_name, last_message_at')
+      .order('last_message_at', { ascending: false, nullsFirst: false })
+      .limit(50);
+    const current = select.value;
+    select.innerHTML = '<option value="">— No chat linked —</option>' + (data || []).map((c) =>
+      `<option value="${c.id}">${escapeHtml(c.profile_name || 'Customer')} · +${escapeHtml(c.wa_id)}</option>`).join('');
+    select.value = current;
+  }
+
   async function loadCatalog() {
     const { data } = await window.supabaseClient
       .from('catalog_public')
@@ -90,8 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
       statusEl.textContent = 'Select at least one item.';
       return;
     }
+    const conversationId = Number(el('bk-conversation').value) || undefined;
     const quote = await run('Calculating quote', () =>
-      workerFetch('/admin/quotes', { method: 'POST', body: JSON.stringify({ items }) }));
+      workerFetch('/admin/quotes', { method: 'POST', body: JSON.stringify({ items, conversation_id: conversationId }) }));
     if (!quote) return;
     lastQuote = quote;
     el('bk-quote-result').innerHTML = `
@@ -131,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadBookings() {
     let query = window.supabaseClient
       .from('bookings')
-      .select('id, event_date, status, customer_name, total_minor, deposit_due_minor, payment_reference, confirmation_code, hold_expires_at')
+      .select('id, event_date, status, customer_name, total_minor, deposit_due_minor, payment_reference, confirmation_code, hold_expires_at, conversation_id')
       .order('event_date', { ascending: true })
       .limit(100);
     const filter = el('bk-filter').value;
@@ -151,9 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
             · ref <code>${escapeHtml(b.payment_reference)}</code>
             ${b.confirmation_code ? ` · code <strong>${escapeHtml(b.confirmation_code)}</strong>` : ''}
             ${b.status === 'held' ? ` · hold expires ${escapeHtml(new Date(b.hold_expires_at).toLocaleString())}` : ''}
+            ${b.conversation_id ? ' · 💬 chat linked' : ' · no WhatsApp chat linked'}
           </p>
         </div>
         <div class="pricing-actions">
+          ${(b.status === 'held' || b.status === 'payment_submitted') && b.conversation_id && can('conversations.reply') ? `<button class="button primary" data-instructions="${b.id}">Send payment details</button>` : ''}
           ${(b.status === 'held' || b.status === 'payment_submitted') && can('payments.submit') ? `<button class="button" data-pay="${b.id}" data-deposit="${b.deposit_due_minor}">Record payment</button>` : ''}
           ${['held', 'payment_submitted', 'confirmed'].includes(b.status) && can('bookings.cancel') ? `<button class="button danger" data-cancel="${b.id}">Cancel</button>` : ''}
         </div>
@@ -161,6 +181,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   el('bk-list').addEventListener('click', (event) => {
+    const instructions = event.target.closest('[data-instructions]');
+    if (instructions) {
+      if (!confirm('Send the deposit amount, payment reference and MoMo/bank details to this customer on WhatsApp? This takes the chat out of AI mode.')) return;
+      instructions.disabled = true;
+      run('Sending payment details', () => workerFetch(`/admin/bookings/${instructions.dataset.instructions}/payment-instructions`, {
+        method: 'POST', body: JSON.stringify({ client_message_id: crypto.randomUUID() })
+      })).then((result) => {
+        if (result) statusEl.textContent = 'Payment details sent on WhatsApp.';
+      });
+      return;
+    }
     const pay = event.target.closest('[data-pay]');
     const cancel = event.target.closest('[data-cancel]');
     if (pay) {
@@ -232,7 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST', body: JSON.stringify({ decision, reason })
       })).then((result) => {
       if (result && result.confirmation_code) {
-        statusEl.textContent = `Booking confirmed. Code ${result.confirmation_code}.`;
+        const message = result.confirmation_message || {};
+        statusEl.textContent = `Booking confirmed. Code ${result.confirmation_code}. ` + (message.status === 'sent'
+          ? 'Confirmation sent to the customer on WhatsApp.'
+          : `Confirmation NOT sent (${message.reason || 'unknown'}) — tell the customer manually.`);
       }
     });
   });
@@ -255,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     el('bk-quote-card').classList.toggle('hidden', !can('quotes.create'));
     statusEl.textContent = '';
-    await Promise.all([loadCatalog(), loadAll()]);
+    await Promise.all([loadCatalog(), loadConversations(), loadAll()]);
   }
 
   el('bk-filter').addEventListener('change', loadBookings);

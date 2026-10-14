@@ -999,3 +999,14 @@
   min-width: 0;
 }
 .pricing-badge--pending { color: var(--gold); border-color: rgba(255, 190, 11, 0.5); }
+.bk-select {
+  display: block;
+  margin: 0.35rem 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  font: inherit;
+  max-width: 100%;
+}
