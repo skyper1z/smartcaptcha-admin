@@ -48,7 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const STATUS_MARKS = { queued: '🕓', sent: '✓', delivered: '✓✓', read: '✓✓ read', failed: '⚠ failed' };
 
   async function loadAutomation() {
-    const { data } = await window.supabaseClient.from('automation_settings').select('paused').maybeSingle();
+    let { data, error } = await window.supabaseClient.from('automation_settings').select('paused, auto_reply_scope').maybeSingle();
+    if (error) {
+      // Database not yet updated with auto_reply_scope: fall back to pause only.
+      ({ data } = await window.supabaseClient.from('automation_settings').select('paused').maybeSingle());
+    }
     automation = data;
     renderAutomation();
   }
@@ -62,11 +66,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = paused
       ? (can('automation.resume') ? '<button class="button primary" data-automation="resume">Resume automation</button>' : '')
       : (can('automation.pause') ? '<button class="button danger" data-automation="pause">Pause all automation</button>' : '');
+    const scope = automation.auto_reply_scope;
+    const SCOPES = {
+      off: 'Approve every reply',
+      allowlist: 'Auto-reply to test numbers only',
+      all: 'Auto-reply to all customers'
+    };
+    const scopeControl = !scope ? ''
+      : can('automation.resume')
+        ? `<label class="inbox-scope">AI replies:
+             <select data-scope aria-label="Automatic replies">
+               ${Object.entries(SCOPES).map(([value, label]) => `<option value="${value}" ${value === scope ? 'selected' : ''}>${label}</option>`).join('')}
+             </select>
+           </label>`
+        : `<span class="pricing-muted">AI replies: ${escapeHtml(SCOPES[scope] || scope)}</span>`;
     automationEl.innerHTML = `
       <span class="inbox-pill ${paused ? 'inbox-pill--paused' : 'inbox-pill--active'}">
         ${paused ? '⏸ Automation paused — no bot messages are sent' : '● Automation active'}
-      </span> ${button}`;
+      </span> ${button} ${scopeControl}
+      ${scope === 'all' && !paused ? '<span class="pricing-muted">Payments, bookings, complaints, discounts and unverified prices still wait for you below.</span>' : ''}`;
   }
+
+  automationEl.addEventListener('change', (event) => {
+    const select = event.target.closest('[data-scope]');
+    if (!select) return;
+    const scope = select.value;
+    const warning = scope === 'all'
+      ? 'Let the AI reply to ALL customers automatically?\n\nIt only auto-sends replies with verified prices and no warnings. Payments, bookings, complaints, discounts and "talk to a person" still wait for you.'
+      : scope === 'off' ? 'Require your approval for every AI reply?' : 'Auto-reply only to the test numbers?';
+    if (!confirm(warning)) {
+      renderAutomation();
+      return;
+    }
+    act('Updating AI replies', () =>
+      workerFetch('/admin/automation/scope', { method: 'POST', body: JSON.stringify({ scope }) }));
+  });
 
   async function loadConversations() {
     const { data, error } = await window.supabaseClient
