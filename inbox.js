@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const replyForm = el('inbox-reply-form');
   const replyInput = el('inbox-reply-input');
   const replyNote = el('inbox-reply-note');
+  const draftEl = el('inbox-draft');
+  let renderedDraftId = null;
 
   let me = null;
   let conversations = [];
@@ -146,7 +148,97 @@ document.addEventListener('DOMContentLoaded', () => {
       : convo.mode === 'ai'
         ? 'Sending a reply takes over this chat: the bot stops replying to this customer.'
         : '';
+
+    await loadDraft(convo, windowOpen);
   }
+
+  // Shadow mode: show the newest pending AI draft for staff review.
+  async function loadDraft(convo, windowOpen) {
+    if (!can('conversations.reply')) {
+      draftEl.classList.add('hidden');
+      return;
+    }
+    const { data } = await window.supabaseClient
+      .from('ai_drafts')
+      .select('id, body, flags, tool_trace, quote_id, model, latency_ms, created_at')
+      .eq('conversation_id', convo.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    const draft = data && data[0];
+    if (!draft) {
+      renderedDraftId = null;
+      draftEl.classList.add('hidden');
+      draftEl.innerHTML = '';
+      return;
+    }
+    // Keep a staff member's in-progress edits across polling refreshes.
+    if (draft.id === renderedDraftId) return;
+    renderedDraftId = draft.id;
+
+    let quoteLine = '';
+    if (draft.quote_id) {
+      const { data: quote } = await window.supabaseClient
+        .from('quotes')
+        .select('quote_number, status, total_minor, deposit_minor, deposit_basis_points')
+        .eq('id', draft.quote_id)
+        .maybeSingle();
+      if (quote) {
+        const money = (minor) => minor === null ? '—'
+          : `GHS ${(BigInt(minor) / 100n).toLocaleString('en-US')}.${(BigInt(minor) % 100n).toString().padStart(2, '0')}`;
+        quoteLine = `<p class="inbox-draft-quote">Quote ${escapeHtml(quote.quote_number)} · ${escapeHtml(quote.status.replace('_', ' '))} · total ${escapeHtml(money(quote.total_minor))} · deposit ${escapeHtml(money(quote.deposit_minor))}</p>`;
+      }
+    }
+    const flags = draft.flags || [];
+    const escalation = (draft.tool_trace || []).find((t) => t.name === 'escalate_to_human');
+    const tools = [...new Set((draft.tool_trace || []).map((t) => t.name))];
+    const warnings = [
+      flags.includes('ungrounded_price')
+        ? '<p class="inbox-draft-warn inbox-draft-warn--danger">⚠ Contains a price or percentage not found in the approved catalog or quote. Edit it before sending.</p>' : '',
+      flags.includes('escalation_requested')
+        ? `<p class="inbox-draft-warn">🙋 The assistant asked for a human${escalation && escalation.args && escalation.args.reason ? `: ${escapeHtml(escalation.args.reason)}` : ''}</p>` : ''
+    ].join('');
+
+    draftEl.innerHTML = `
+      <div class="inbox-draft-head">
+        <strong>🤖 AI draft — not sent</strong>
+        <span class="pricing-muted">${escapeHtml(tools.length ? `used ${tools.join(', ')}` : 'no tools used')} · ${escapeHtml(String(draft.latency_ms ?? '–'))} ms</span>
+      </div>
+      ${warnings}${quoteLine}
+      <textarea id="inbox-draft-body" rows="4" maxlength="4096" aria-label="Draft reply">${escapeHtml(draft.body)}</textarea>
+      <div class="inbox-draft-actions">
+        <button class="button primary" data-draft="approved" ${windowOpen ? '' : 'disabled'}>Approve &amp; send</button>
+        <button class="button danger" data-draft="rejected">Reject</button>
+        <span class="pricing-muted">Approving sends as you; the chat stays in AI mode.</span>
+      </div>`;
+    draftEl.dataset.draftId = String(draft.id);
+    draftEl.classList.remove('hidden');
+  }
+
+  draftEl.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-draft]');
+    if (!button) return;
+    const draftId = draftEl.dataset.draftId;
+    const decision = button.dataset.draft;
+    const body = el('inbox-draft-body').value.trim();
+    if (decision === 'approved' && !body) return;
+    if (decision === 'rejected' && !confirm('Reject this AI draft?')) return;
+    draftEl.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    act(decision === 'approved' ? 'Sending draft' : 'Rejecting draft', async () => {
+      try {
+        await workerFetch(`/admin/drafts/${draftId}/review`, {
+          method: 'POST',
+          body: JSON.stringify(decision === 'approved'
+            ? { decision, body, client_message_id: crypto.randomUUID() }
+            : { decision })
+        });
+        renderedDraftId = null;
+      } catch (err) {
+        draftEl.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+        throw err;
+      }
+    });
+  });
 
   async function refresh() {
     try {
@@ -194,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = event.target.closest('[data-convo]');
     if (!button) return;
     selectedId = Number(button.dataset.convo);
+    renderedDraftId = null;
     renderConversations();
     threadEl.innerHTML = '';
     loadThread().then(() => { threadEl.scrollTop = threadEl.scrollHeight; });

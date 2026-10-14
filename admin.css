@@ -951,3 +951,33 @@
   .inbox-conversations { max-height: 240px; }
   .inbox-msg { max-width: 90%; }
 }
+
+/* AI draft review (shadow mode) */
+.inbox-draft {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px dashed rgba(0, 245, 212, 0.45);
+  border-radius: 10px;
+  background: rgba(0, 180, 166, 0.06);
+}
+.inbox-draft-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.inbox-draft-warn { margin: 0.25rem 0; font-size: 0.82rem; color: var(--gold); }
+.inbox-draft-warn--danger { color: #ff8888; }
+.inbox-draft-quote { margin: 0.25rem 0; font-size: 0.82rem; color: var(--teal-bright); }
+.inbox-draft textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--paper);
+  font: inherit;
+}
+.inbox-draft-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+.inbox-draft-actions .button.danger {
+  background: rgba(255, 75, 75, 0.12);
+  color: #ff4b4b;
+  border: 1px solid rgba(255, 75, 75, 0.3);
+}
