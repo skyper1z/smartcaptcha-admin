@@ -1010,3 +1010,28 @@
   font: inherit;
   max-width: 100%;
 }
+
+/* Price editing */
+.pricing-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: -0.25rem 0 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
+.pricing-edit select,
+.pricing-edit input {
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--paper);
+  font: inherit;
+  min-width: 0;
+  width: 9rem;
+}
+.pricing-edit input[name="note"] { width: 14rem; }
+.pricing-edit p { flex-basis: 100%; margin: 0; }

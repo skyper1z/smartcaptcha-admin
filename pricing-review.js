@@ -25,9 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let items = [];
   let depositRules = [];
   let canApprove = false;
+  let canEdit = false;
+  let editingItemId = null;
   let loaded = false;
 
-  const { escapeHtml, workerFetch, staffProfile } = window.SmartcapWorker;
+  const { escapeHtml, workerFetch, staffProfile, parseCedis } = window.SmartcapWorker;
 
   // Integer pesewas → "GHS 6,500.00" without floating-point arithmetic.
   function formatMinor(minor) {
@@ -81,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const me = await staffProfile();
       canApprove = me.permissions.includes('catalog.approve');
+      canEdit = me.permissions.includes('catalog.edit');
       roleEl.textContent = `Signed in as ${me.staff_role}${canApprove ? '' : ' (view only)'}`;
       if (!me.permissions.includes('catalog.read_internal')) {
         statusEl.textContent = 'Your role cannot view the internal catalog.';
@@ -114,9 +117,54 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   }
 
-  function latestPrice(item) {
+  const newestFirst = (a, b) => Date.parse(b.effective_from) - Date.parse(a.effective_from) || b.id - a.id;
+
+  // The price customers and the assistant currently see.
+  function livePrice(item) {
+    const now = Date.now();
     return [...(item.catalog_price_versions || [])]
-      .sort((a, b) => Date.parse(b.effective_from) - Date.parse(a.effective_from) || b.id - a.id)[0];
+      .filter((p) => p.review_status === 'approved' && Date.parse(p.effective_from) <= now)
+      .sort(newestFirst)[0];
+  }
+
+  function pendingPrice(item) {
+    return [...(item.catalog_price_versions || [])]
+      .filter((p) => p.review_status === 'pending_review')
+      .sort(newestFirst)[0];
+  }
+
+  // What needs attention: a pending proposal, else the live price, else the
+  // newest (rejected) version.
+  function latestPrice(item) {
+    return pendingPrice(item) || livePrice(item)
+      || [...(item.catalog_price_versions || [])].sort(newestFirst)[0];
+  }
+
+  function minorToCedis(minor) {
+    if (minor === null || minor === undefined) return '';
+    const value = BigInt(minor);
+    const pesewas = value % 100n;
+    return `${value / 100n}${pesewas ? `.${pesewas.toString().padStart(2, '0')}` : ''}`;
+  }
+
+  function editForm(item, base) {
+    const model = base ? base.pricing_model : 'fixed';
+    const option = (value, label) => `<option value="${value}" ${value === model ? 'selected' : ''}>${label}</option>`;
+    return `
+      <form class="pricing-edit" data-edit-form="${item.id}">
+        <select name="model" aria-label="Pricing type">
+          ${option('fixed', 'Fixed price')}${option('starting_at', 'Starting from')}${option('range', 'Range')}
+          ${option('per_unit', 'Per unit')}${option('percentage', 'Percentage of package')}${option('requires_quote', 'Price on request')}
+        </select>
+        <input name="amount" inputmode="decimal" placeholder="Amount (GHS)" value="${escapeHtml(minorToCedis(base && base.amount_minor))}" aria-label="Amount in GHS">
+        <input name="max" inputmode="decimal" placeholder="Max (GHS, ranges)" value="${escapeHtml(minorToCedis(base && base.max_amount_minor))}" aria-label="Maximum in GHS">
+        <input name="percent" inputmode="decimal" placeholder="%" value="${base && base.percentage_basis_points ? base.percentage_basis_points / 100 : ''}" aria-label="Percent">
+        <input name="unit" placeholder="Unit (e.g. each, hour)" value="${escapeHtml((base && base.unit) || '')}" aria-label="Unit">
+        <input name="note" placeholder="Reason for change" maxlength="300" aria-label="Reason for change">
+        <button type="submit" class="button primary">Propose price</button>
+        <button type="button" class="button" data-cancel-edit>Cancel</button>
+        <p class="pricing-muted">The new price goes live on the website and in WhatsApp after an admin approves it. Existing quotes keep their price.</p>
+      </form>`;
   }
 
   function render() {
@@ -151,10 +199,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const flags = [];
       if (NEEDS_HUMAN_QUOTE.has(price.pricing_model)) flags.push('Needs human quote');
       if (notes.length) flags.push('Has review notes');
-      const actions = canApprove && price.review_status === 'pending_review'
+      const live = livePrice(item);
+      const actions = (canApprove && price.review_status === 'pending_review'
         ? `<button class="button primary" data-action="approved" data-price="${price.id}">Approve</button>
            <button class="button danger" data-action="rejected" data-price="${price.id}">Reject</button>`
-        : `<span class="pricing-badge pricing-badge--${escapeHtml(price.review_status)}">${escapeHtml(price.review_status.replace('_', ' '))}</span>`;
+        : `<span class="pricing-badge pricing-badge--${escapeHtml(price.review_status)}">${escapeHtml(price.review_status.replace('_', ' '))}</span>`)
+        + (canEdit ? ` <button class="button" data-edit="${item.id}">Edit price</button>` : '');
+      const priceLine = live && price.review_status === 'pending_review' && live.id !== price.id
+        ? `Live: ${escapeHtml(describePrice(live))} → <strong>Proposed: ${escapeHtml(describePrice(price))}</strong>`
+        : escapeHtml(describePrice(price));
 
       return `
         <article class="pricing-row" data-item="${item.id}">
@@ -164,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${escapeHtml(item.item_type)} · ${escapeHtml(item.category)}${item.tab ? ` · ${escapeHtml(item.tab)}` : ''}
               · <code>${escapeHtml(item.code)}</code>
             </p>
-            <p class="pricing-price">${escapeHtml(describePrice(price))}
+            <p class="pricing-price">${priceLine}
               <span class="pricing-muted">· deposit ${escapeHtml(depositFor(item))}${item.tone ? ` (${escapeHtml(item.tone)})` : ''}</span>
             </p>
             ${flags.map((flag) => `<span class="pricing-flag">${escapeHtml(flag)}</span>`).join(' ')}
@@ -172,9 +225,64 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="pricing-source">Source: ${sourceLink(item.source)}</p>
           </div>
           <div class="pricing-actions">${actions}</div>
-        </article>`;
+        </article>
+        ${editingItemId === item.id ? editForm(item, live || price) : ''}`;
     }).join('');
   }
+
+  list.addEventListener('click', (event) => {
+    const editButton = event.target.closest('[data-edit]');
+    if (editButton) {
+      editingItemId = Number(editButton.dataset.edit);
+      render();
+      return;
+    }
+    if (event.target.closest('[data-cancel-edit]')) {
+      editingItemId = null;
+      render();
+    }
+  });
+
+  list.addEventListener('submit', async (event) => {
+    const form = event.target.closest('[data-edit-form]');
+    if (!form) return;
+    event.preventDefault();
+    const item = items.find((candidate) => candidate.id === Number(form.dataset.editForm));
+    const f = Object.fromEntries(new FormData(form).entries());
+    const model = f.model;
+    const body = { pricing_model: model, change_note: f.note || undefined };
+    const needsAmount = ['fixed', 'starting_at', 'range', 'per_unit'].includes(model);
+    if (needsAmount) {
+      body.amount_minor = parseCedis(f.amount);
+      if (body.amount_minor === null) { statusEl.textContent = 'Enter the amount in GHS, e.g. 6500 or 6,500.00.'; return; }
+    }
+    if (model === 'range') {
+      body.max_amount_minor = parseCedis(f.max);
+      if (body.max_amount_minor === null || body.max_amount_minor <= body.amount_minor) {
+        statusEl.textContent = 'For a range, enter a maximum greater than the amount.'; return;
+      }
+    }
+    if (model === 'percentage') {
+      const match = /^(\d{1,3})(?:\.(\d{1,2}))?$/.exec(String(f.percent).trim());
+      const bp = match ? Number(match[1]) * 100 + Number((match[2] || '0').padEnd(2, '0')) : 0;
+      if (bp < 1 || bp > 10000) { statusEl.textContent = 'Enter a percentage between 0.01 and 100.'; return; }
+      body.percentage_basis_points = bp;
+      body.unit = f.unit || 'package';
+    }
+    if (model === 'per_unit') body.unit = f.unit || 'each';
+    if (!confirm(`Propose a new price for ${item.title}? It goes live only after approval.`)) return;
+    try {
+      const result = await workerFetch(`/admin/catalog/items/${encodeURIComponent(item.code)}/price-versions`, {
+        method: 'POST', body: JSON.stringify(body)
+      });
+      statusEl.textContent = `${item.title}: proposed ${result.display_price} — waiting for approval.`;
+      editingItemId = null;
+      statusFilter.value = 'pending_review';
+      await load();
+    } catch (err) {
+      statusEl.textContent = `Could not propose price: ${err.message}`;
+    }
+  });
 
   list.addEventListener('click', async (event) => {
     const button = event.target.closest('button[data-action]');

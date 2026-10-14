@@ -29,6 +29,15 @@
     return body;
   }
 
+  // "4550", "4,550" or "4550.50" (cedis) → integer pesewas; null if invalid.
+  function parseCedis(text) {
+    const value = String(text).trim();
+    const match = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?$/.exec(value);
+    if (!match) return null;
+    const minor = BigInt(match[1].replace(/,/g, '')) * 100n + BigInt((match[2] || '0').padEnd(2, '0'));
+    return minor > 0n && minor <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(minor) : null;
+  }
+
   // One /admin/me lookup per page load, shared by all tabs.
   let mePromise = null;
   function staffProfile() {
@@ -46,5 +55,5 @@
     if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') mePromise = null;
   });
 
-  window.SmartcapWorker = Object.freeze({ escapeHtml, workerFetch, staffProfile });
+  window.SmartcapWorker = Object.freeze({ escapeHtml, workerFetch, staffProfile, parseCedis });
 })();

@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const { escapeHtml, workerFetch, staffProfile } = window.SmartcapWorker;
+  const { escapeHtml, workerFetch, staffProfile, parseCedis } = window.SmartcapWorker;
   const el = (id) => document.getElementById(id);
   const statusEl = el('bookings-status');
   let me = null;
@@ -27,15 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (minor === null || minor === undefined) return '—';
     const value = BigInt(minor);
     return `GHS ${(value / 100n).toLocaleString('en-US')}.${(value % 100n).toString().padStart(2, '0')}`;
-  }
-
-  // "4550", "4,550" or "4550.50" (cedis) → integer pesewas; null if invalid.
-  function parseCedis(text) {
-    const value = String(text).trim();
-    const match = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?$/.exec(value);
-    if (!match) return null;
-    const minor = BigInt(match[1].replace(/,/g, '')) * 100n + BigInt((match[2] || '0').padEnd(2, '0'));
-    return minor > 0n && minor <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(minor) : null;
   }
 
   const ERROR_TEXT = {
