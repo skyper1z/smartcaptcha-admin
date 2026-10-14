@@ -7,8 +7,7 @@
     production: {
       supabaseUrl: 'https://kcatufanwxhcoagyeskf.supabase.co',
       supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjYXR1ZmFud3hoY29hZ3llc2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDUwNDcsImV4cCI6MjA5NjQyMTA0N30.l9tXgvvRt6AKQg3lmrk5WUNCEHPr9xu-CisV0uk-Jis',
-      // WhatsApp AI admin APIs are not live in production yet.
-      workerUrl: null
+      workerUrl: 'https://smartcaptcha-ai.smartcaptcha-ai.workers.dev'
     },
     development: {
       supabaseUrl: 'https://ayfardmgbgbiaqjtizap.supabase.co',
