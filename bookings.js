@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const { data } = await window.supabaseClient
       .from('payment_submissions')
-      .select('id, booking_id, amount_minor, transaction_reference, submitted_at, bookings(event_date, customer_name, deposit_due_minor, payment_reference)')
+      .select('id, booking_id, amount_minor, transaction_reference, submitted_at, submitted_by, bookings(event_date, customer_name, deposit_due_minor, payment_reference)')
       .eq('status', 'pending_review')
       .order('submitted_at', { ascending: true });
     panel.innerHTML = (data || []).map((s) => `
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${escapeHtml(s.bookings ? `${s.bookings.customer_name || 'Customer'} · ${s.bookings.event_date} · deposit due ${money(s.bookings.deposit_due_minor)} · booking ref ${s.bookings.payment_reference}` : '')}
             · submitted ${escapeHtml(new Date(s.submitted_at).toLocaleString())}
           </p>
-          <p class="pricing-muted">Check the MoMo / bank statement before approving.</p>
+          <p class="pricing-muted">${s.submitted_by ? 'Recorded by staff.' : '📱 Reported by the customer on WhatsApp — the amount shown is the deposit they were asked to pay.'} Check the MoMo / bank statement before approving.</p>
         </div>
         <div class="pricing-actions">
           ${can('payments.verify') ? `<button class="button primary" data-review="approved" data-sub="${s.id}">Approve</button>
