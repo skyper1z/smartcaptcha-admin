@@ -43,7 +43,7 @@
 
   <div id="dashboard-container" class="admin-dashboard hidden">
     <header class="admin-header">
-      <div class="brand">Smart Captcha Admin</div>
+      <div class="brand">Smart Captcha Admin <span id="env-badge" class="env-badge hidden"></span></div>
       <button id="logout-btn" class="button">Logout</button>
     </header>
 
@@ -53,6 +53,9 @@
         <button class="tab" data-target="packages">Packages</button>
         <button class="tab" data-target="announcement">📢 Announcement</button>
         <button class="tab" data-target="settings">Settings / Tools</button>
+        <button class="tab" data-target="pricing" id="pricing-tab-btn">💰 Pricing Review</button>
+        <button class="tab" data-target="inbox" id="inbox-tab-btn">💬 WhatsApp Inbox</button>
+        <button class="tab" data-target="bookings" id="bookings-tab-btn">📅 Bookings</button>
       </div>
 
       <!-- STATISTICS DASHBOARD -->
@@ -84,6 +87,7 @@
 
       <!-- PACKAGES TAB -->
       <section id="packages-tab" class="admin-section hidden">
+        <p id="packages-source-note" class="status-text hidden">⚠️ The website and WhatsApp now use the prices in <strong>💰 Pricing Review</strong>. Changes made here do not update the website.</p>
         <div class="section-heading split">
           <h2>Manage Packages</h2>
           <button class="button primary" id="add-package-btn">Add Package</button>
@@ -274,6 +278,103 @@
         </div>
       </section>
 
+      <!-- PRICING REVIEW TAB (canonical catalog; approvals via Worker API) -->
+      <section id="pricing-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>Pricing Review</h2>
+          <button class="button" id="pricing-refresh">Refresh</button>
+        </div>
+        <p class="pricing-muted">Prices imported from the website wait here until an admin approves them. Only approved prices are shown to customers or used by the WhatsApp assistant.</p>
+        <p id="pricing-role" class="status-text"></p>
+        <div id="pricing-source" class="pricing-source-bar"></div>
+        <div class="pricing-filters">
+          <select id="pricing-status-filter" aria-label="Review status">
+            <option value="pending_review">Pending review</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="all">All</option>
+          </select>
+          <select id="pricing-type-filter" aria-label="Item type">
+            <option value="all">All types</option>
+            <option value="package">Packages</option>
+            <option value="service">General services</option>
+            <option value="addon">Add-ons</option>
+          </select>
+          <input type="search" id="pricing-search" placeholder="Search title or code" aria-label="Search">
+          <span id="pricing-counts" class="pricing-muted"></span>
+          <button class="button" id="pricing-approve-all" hidden>Approve all shown</button>
+        </div>
+        <p id="pricing-status" class="status-text"></p>
+        <div id="pricing-list" class="pricing-list"></div>
+      </section>
+
+      <!-- WHATSAPP INBOX TAB (actions via Worker API) -->
+      <section id="inbox-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>WhatsApp Inbox</h2>
+          <button class="button" id="inbox-refresh">Refresh</button>
+        </div>
+        <div id="inbox-automation" class="inbox-automation"></div>
+        <p id="inbox-status" class="status-text"></p>
+        <div class="inbox-layout">
+          <div id="inbox-conversations" class="inbox-conversations" aria-label="Conversations"></div>
+          <div class="inbox-pane">
+            <div id="inbox-thread-header" class="inbox-thread-header"></div>
+            <div id="inbox-thread" class="inbox-thread"><p class="pricing-muted">Select a conversation.</p></div>
+            <div id="inbox-draft" class="inbox-draft hidden" aria-live="polite"></div>
+            <form id="inbox-reply-form" class="inbox-reply hidden">
+              <textarea id="inbox-reply-input" rows="2" maxlength="4096" placeholder="Type a reply to the customer…" aria-label="Reply"></textarea>
+              <button type="submit" class="button primary">Send</button>
+            </form>
+            <p id="inbox-reply-note" class="pricing-muted"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOOKINGS TAB (actions via Worker API) -->
+      <section id="bookings-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>Bookings &amp; Payments</h2>
+          <button class="button" id="bk-refresh">Refresh</button>
+        </div>
+        <p id="bookings-status" class="status-text"></p>
+
+        <div class="tool-card" id="bk-quote-card">
+          <h3>New quote &amp; date hold</h3>
+          <p class="pricing-muted">Totals and deposits are calculated by the server from approved prices.</p>
+          <label class="pricing-muted" for="bk-conversation">Customer WhatsApp chat (needed to send payment details)</label>
+          <select id="bk-conversation" class="bk-select"><option value="">— No chat linked —</option></select>
+          <div id="bk-quote-items" class="bk-items"></div>
+          <button class="button primary" id="bk-quote-btn">Calculate quote</button>
+          <div id="bk-quote-result" class="bk-quote-result"></div>
+          <form id="bk-hold-form" class="bk-hold hidden">
+            <input type="date" id="bk-event-date" required aria-label="Event date">
+            <input type="text" id="bk-customer" maxlength="120" placeholder="Customer name" aria-label="Customer name">
+            <button type="submit" class="button primary">Hold this date</button>
+          </form>
+        </div>
+
+        <div class="tool-card" style="margin-top: 1.5rem;">
+          <h3>Payments awaiting review</h3>
+          <div id="bk-payments" class="pricing-list"></div>
+        </div>
+
+        <div class="tool-card" style="margin-top: 1.5rem;">
+          <div class="section-heading split">
+            <h3>Bookings</h3>
+            <select id="bk-filter" aria-label="Booking status">
+              <option value="held,payment_submitted,confirmed">Active</option>
+              <option value="held">Held</option>
+              <option value="payment_submitted">Payment submitted</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="expired,cancelled,completed">Closed</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <div id="bk-list" class="pricing-list"></div>
+        </div>
+      </section>
+
       <!-- SETTINGS TAB -->
       <section id="settings-tab" class="admin-section hidden">
         <div class="section-heading">
@@ -346,8 +447,12 @@
     </main>
   </div>
 
-  <script src="supabase-client.js"></script>
+  <script src="supabase-client.js?v=3"></script>
   <script src="packages-data.js?v=13"></script>
-  <script src="admin.js?v=13"></script>
+  <script src="admin.js?v=15"></script>
+  <script src="worker-api.js?v=2"></script>
+  <script src="pricing-review.js?v=4"></script>
+  <script src="inbox.js?v=2"></script>
+  <script src="bookings.js?v=3"></script>
 </body>
 </html>

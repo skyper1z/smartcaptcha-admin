@@ -46,160 +46,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadGallery();
     loadPackages();
     loadEventTypes();
-    autoRestoreMissingData();
-  }
-
-  async function autoRestoreMissingData() {
-    try {
-      // 1. Restore 'others' if missing
-      const { data: etData } = await window.supabaseClient.from('event_types').select('*').eq('key', 'others');
-      if (etData && etData.length === 0) {
-        console.log("Restoring missing 'others' event type...");
-        await window.supabaseClient.from('event_types').insert({
-          key: 'others',
-          label: 'Other Events',
-          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-          tabs: ['Classic', 'Premium', 'Luxury']
-        });
-      }
-
-      // 1b. Update Naming Ceremony event type tabs if they are using the old tabs
-      const { data: namingEtData } = await window.supabaseClient.from('event_types').select('*').eq('key', 'naming');
-      if (namingEtData && namingEtData.length > 0) {
-        const expectedTabs = ["Photo only", "Video only", "Photo & Video", "Live Streaming"];
-        const namingRow = namingEtData[0];
-        const needsTabsUpdate = namingRow.tabs.length !== expectedTabs.length ||
-                                namingRow.tabs.some((t, i) => t !== expectedTabs[i]);
-        if (needsTabsUpdate) {
-          console.log("Updating Naming Ceremony tabs in event_types database table...");
-          await window.supabaseClient.from('event_types').update({ tabs: expectedTabs }).eq('key', 'naming');
-        }
-      }
-
-      // 1c. Update Birthday Party event type tabs if they are using the old tabs
-      const { data: birthdayEtData } = await window.supabaseClient.from('event_types').select('*').eq('key', 'birthday');
-      if (birthdayEtData && birthdayEtData.length > 0) {
-        const expectedTabs = ["Photo only", "Video only", "Photo & Video"];
-        const birthdayRow = birthdayEtData[0];
-        const needsTabsUpdate = birthdayRow.tabs.length !== expectedTabs.length ||
-                                birthdayRow.tabs.some((t, i) => t !== expectedTabs[i]);
-        if (needsTabsUpdate) {
-          console.log("Updating Birthday Party tabs in event_types database table...");
-          await window.supabaseClient.from('event_types').update({ tabs: expectedTabs }).eq('key', 'birthday');
-        }
-      }
-
-      // 2. Restore missing packages
-      let { data: pkgData } = await window.supabaseClient.from('packages').select('title,tone');
-      if (pkgData) {
-        // 2b. Sync Naming Ceremony packages if out of sync
-        const namingPackagesInDB = pkgData.filter(p => p.tone === 'naming');
-        const expectedNamingTitles = new Set(window.defaultPackages.naming.map(p => p.title.toLowerCase().trim()));
-        
-        const needsNamingSync = namingPackagesInDB.length !== window.defaultPackages.naming.length || 
-                                namingPackagesInDB.some(p => !expectedNamingTitles.has(p.title.toLowerCase().trim()));
-        
-        if (needsNamingSync) {
-          console.log("Naming Ceremony packages are out of sync in database. Synchronizing...");
-          await window.supabaseClient.from('packages').delete().eq('tone', 'naming');
-          const toInsertNaming = window.defaultPackages.naming.map(p => ({
-            category: p.category,
-            title: p.title,
-            tab: p.tab || null,
-            location: p.location || null,
-            price: p.price,
-            tone: p.tone,
-            photo_url: p.photo || null,
-            bullets: p.bullets || [],
-            tags: p.tags || [],
-            featured: p.featured || false
-          }));
-          const { error: syncErr } = await window.supabaseClient.from('packages').insert(toInsertNaming);
-          if (syncErr) {
-            console.error("Error syncing Naming Ceremony packages:", syncErr.message);
-          } else {
-            console.log("Naming Ceremony packages synchronized successfully.");
-          }
-          // Refetch packages to get latest state
-          const { data: refetchedPkgData } = await window.supabaseClient.from('packages').select('title,tone');
-          if (refetchedPkgData) {
-            pkgData = refetchedPkgData;
-          }
-        }
-
-        // 2c. Sync Birthday party packages if out of sync
-        const birthdayPackagesInDB = pkgData.filter(p => p.tone === 'birthday');
-        const expectedBirthdayTitles = new Set(window.defaultPackages.birthday.map(p => p.title.toLowerCase().trim()));
-        
-        const needsBirthdaySync = birthdayPackagesInDB.length !== window.defaultPackages.birthday.length || 
-                                  birthdayPackagesInDB.some(p => !expectedBirthdayTitles.has(p.title.toLowerCase().trim()));
-        
-        if (needsBirthdaySync) {
-          console.log("Birthday party packages are out of sync in database. Synchronizing...");
-          await window.supabaseClient.from('packages').delete().eq('tone', 'birthday');
-          const toInsertBirthday = window.defaultPackages.birthday.map(p => ({
-            category: p.category,
-            title: p.title,
-            tab: p.tab || null,
-            location: p.location || null,
-            price: p.price,
-            tone: p.tone,
-            photo_url: p.photo || null,
-            bullets: p.bullets || [],
-            tags: p.tags || [],
-            featured: p.featured || false
-          }));
-          const { error: syncErr } = await window.supabaseClient.from('packages').insert(toInsertBirthday);
-          if (syncErr) {
-            console.error("Error syncing Birthday party packages:", syncErr.message);
-          } else {
-            console.log("Birthday party packages synchronized successfully.");
-          }
-          // Refetch packages to get latest state
-          const { data: refetchedPkgData } = await window.supabaseClient.from('packages').select('title,tone');
-          if (refetchedPkgData) {
-            pkgData = refetchedPkgData;
-          }
-        }
-
-        const existingKeys = new Set(pkgData.map(p => `${p.title.trim().toLowerCase()}|${p.tone.trim().toLowerCase()}`));
-        const missing = [];
-        
-        for (const [tone, list] of Object.entries(window.defaultPackages)) {
-          list.forEach(p => {
-            const key = `${p.title.trim().toLowerCase()}|${p.tone.trim().toLowerCase()}`;
-            if (!existingKeys.has(key)) {
-              missing.push(p);
-            }
-          });
-        }
-
-        if (missing.length > 0) {
-          console.log(`Auto-restoring ${missing.length} missing packages...`);
-          const toInsert = missing.map(p => ({
-            category: p.category,
-            title: p.title,
-            tab: p.tab || null,
-            location: p.location || null,
-            price: p.price,
-            tone: p.tone,
-            photo_url: p.photo || null,
-            bullets: p.bullets || [],
-            tags: p.tags || [],
-            featured: p.featured || false
-          }));
-          const { error: insertErr } = await window.supabaseClient.from('packages').insert(toInsert);
-          if (insertErr) {
-            console.error('Error auto-inserting missing packages:', insertErr.message);
-          } else {
-            console.log('Restored packages successfully.');
-            loadPackages();
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error auto-restoring missing data:', err);
-    }
   }
 
   // Auth Listener
@@ -434,205 +280,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load Packages
   async function loadPackages() {
-    // ONE-TIME AUTOMATIC MIGRATION FOR NEW BIRTHDAY PACKAGES
-    try {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if (session) {
-        const migrationKey = 'birthday_packages_migrated_v4';
-        if (!localStorage.getItem(migrationKey)) {
-          console.log("Running automatic birthday packages migration (v4)...");
-          
-          // 1. Delete ONLY the old in-studio birthday and child birthday packages
-          await window.supabaseClient
-            .from('packages')
-            .delete()
-            .eq('location', 'In-studio')
-            .in('category', ['Birthday shoot', 'Child Birthday']);
-            
-          // 2. Insert new packages (both Child Birthday and restored Birthday Shoot packages)
-          const newPackages = [
-            {
-              title: "Silver Package",
-              category: "Child Birthday",
-              location: "In-studio",
-              price: "GHS 500",
-              tone: "portrait",
-              photo_url: "assets/photos/studio-portrait.jpg",
-              bullets: [
-                "1-hour studio session.",
-                "1 outfit.",
-                "6 professionally edited photos.",
-                "High-resolution digital delivery.",
-                "Parent-child portraits included."
-              ],
-              tags: ["Studio Session", "Birthday Portraits", "Themed Setup", "Child Photography", "Props", "Photo Editing", "Retouching", "Digital Delivery"],
-              featured: false,
-              tab: null
-            },
-            {
-              title: "Gold Package",
-              category: "Child Birthday",
-              location: "In-studio",
-              price: "GHS 900",
-              tone: "portrait",
-              photo_url: "assets/photos/traditional-props.jpg",
-              featured: true,
-              bullets: [
-                "Up to 2-hour studio session.",
-                "Two themed setups.",
-                "Up to 2 outfit changes.",
-                "Birthday props provided.",
-                "Cake smash session (cake provided by client).",
-                "10 professionally edited photos.",
-                "Family portraits included.",
-                "High-resolution digital delivery."
-              ],
-              tags: ["Studio Session", "Multiple Outfits", "Themed Setup", "Cake Smash", "Child Portraits", "Family Portraits", "Photo Editing", "Digital Delivery"],
-              tab: null
-            },
-            {
-              title: "Platinum Package",
-              category: "Child Birthday",
-              location: "In-studio",
-              price: "GHS 1,500",
-              tone: "portrait",
-              photo_url: "assets/photos/studio-portrait.jpg",
-              featured: false,
-              bullets: [
-                "Up to 3-hour studio session.",
-                "Premium birthday-themed setups.",
-                "Multiple outfit changes.",
-                "Premium props and decorations provided.",
-                "Cake smash session.",
-                "Family and sibling portraits.",
-                "20 professionally edited photos.",
-                "30-second birthday reel.",
-                "One framed portrait."
-              ],
-              tags: ["Luxury Setup", "Multiple Themes", "Cake Smash", "Family Portraits", "Premium Retouching", "Birthday Reel", "Framed Portrait", "Digital Delivery"],
-              tab: null
-            },
-            {
-              title: "Signature Package",
-              category: "Child Birthday",
-              location: "In-studio",
-              price: "GHS 3,000",
-              tone: "portrait",
-              photo_url: "assets/photos/traditional-props.jpg",
-              featured: false,
-              bullets: [
-                "Fully customized birthday concept.",
-                "Premium themed set design.",
-                "Unlimited outfit changes.",
-                "Luxury props and décor.",
-                "Cake smash session.",
-                "Family portraits.",
-                "30 professionally edited photos.",
-                "Cinematic birthday reel.",
-                "Framed portrait.",
-                "Mini photo album."
-              ],
-              tags: ["Luxury Experience", "Custom Theme", "Premium Props", "Family Portraits", "Birthday Reel", "Behind-The-Scenes", "Framed Portrait", "Photo Album"],
-              tab: null
-            },
-            {
-              title: "Mini Birthday Package",
-              category: "Birthday shoot",
-              location: "In-studio",
-              price: "GHS 300",
-              tone: "portrait",
-              photo_url: "assets/photos/studio-portrait.jpg",
-              bullets: [
-                "30-minute studio session.",
-                "1 outfit.",
-                "1 backdrop.",
-                "5 professionally edited photos.",
-                "Soft copies delivered online."
-              ],
-              tags: ["5 photos", "1 outfit", "30 mins"],
-              featured: false,
-              tab: null
-            },
-            {
-              title: "Classic Birthday Package",
-              category: "Birthday shoot",
-              location: "In-studio",
-              price: "GHS 500",
-              tone: "portrait",
-              photo_url: "assets/photos/traditional-props.jpg",
-              bullets: [
-                "1-hour studio session.",
-                "Up to 2 outfit changes.",
-                "2 backdrop setups.",
-                "10 professionally edited photos.",
-                "Basic retouching.",
-                "Soft copies delivered online."
-              ],
-              tags: ["10 photos", "2 outfits", "1 hour"],
-              featured: false,
-              tab: null
-            },
-            {
-              title: "Premium Birthday Package",
-              category: "Birthday shoot",
-              location: "In-studio",
-              price: "GHS 1,000",
-              tone: "portrait",
-              photo_url: "assets/photos/studio-portrait.jpg",
-              bullets: [
-                "2-hour studio session.",
-                "Up to 3 outfit changes.",
-                "Multiple backdrop setups.",
-                "15 professionally edited photos.",
-                "Advanced beauty retouching.",
-                "Social media-ready images.",
-                "30-second birthday reel."
-              ],
-              tags: ["15 photos", "3 outfits", "Reel included"],
-              featured: false,
-              tab: null
-            },
-            {
-              title: "Luxury Birthday Package",
-              category: "Birthday shoot",
-              location: "In-studio",
-              price: "GHS 2,000",
-              tone: "portrait",
-              photo_url: "assets/photos/traditional-props.jpg",
-              bullets: [
-                "Up to 3-hour studio session.",
-                "Unlimited outfit changes.",
-                "Premium themed setup.",
-                "25 edited photos.",
-                "Cinematic birthday reel.",
-                "Premium retouching.",
-                "Professional makeup service.",
-                "One framed portrait (A3 size)."
-              ],
-              tags: ["25 photos", "Makeup included", "A3 portrait"],
-              featured: false,
-              tab: null
-            }
-          ];
-          
-          const { error: insErr } = await window.supabaseClient
-            .from('packages')
-            .insert(newPackages);
-            
-          if (!insErr) {
-            localStorage.setItem(migrationKey, 'true');
-            console.log("Automatic birthday packages migration (v4) completed successfully!");
-            location.reload();
-            return;
-          } else {
-            console.error("Migration insert failed:", insErr);
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Migration error:", err);
-    }
-
     packagesList.innerHTML = 'Loading...';
     const { data, error } = await window.supabaseClient.from('packages').select('*').order('created_at', { ascending: false });
     
@@ -643,46 +290,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     loadedPackages = data;
 
-    // Check if the Classic Package is present in loadedPackages
-    const hasClassicPackage = loadedPackages.some(pkg => pkg.title === 'Classic Package' && pkg.tone === 'birthday');
-    if (!hasClassicPackage) {
-      try {
-        const { data: { session } } = await window.supabaseClient.auth.getSession();
-        if (session) {
-          console.log("Birthday Classic Package is missing from DB. Restoring...");
-          const classicPackage = {
-            title: "Classic Package",
-            category: "Photo + Video",
-            tab: "Photo + Video",
-            price: "GHS 4,500",
-            tone: "birthday",
-            photo_url: "assets/photos/studio-portrait.jpg",
-            bullets: [
-              "Photography coverage",
-              "Videography coverage",
-              "100+ edited photos",
-              "Full event video",
-              "2–3 minute highlight"
-            ],
-            tags: ["Full video", "photo", "highlight"],
-            featured: false,
-            location: null
-          };
-          const { data: inserted, error: insErr } = await window.supabaseClient
-            .from('packages')
-            .insert([classicPackage])
-            .select();
-            
-          if (!insErr && inserted && inserted.length > 0) {
-            console.log("Classic Package restored successfully!");
-            loadedPackages.unshift(inserted[0]);
-          } else if (insErr) {
-            console.error("Failed to restore Classic Package:", insErr.message);
-          }
-        }
-      } catch (err) {
-        console.error("Restoration error:", err);
-      }
+    // Once the website uses the canonical catalog, this legacy table no
+    // longer drives prices; say so to avoid edits that change nothing.
+    const note = document.getElementById('packages-source-note');
+    if (note) {
+      const { data: settings } = await window.supabaseClient
+        .from('catalog_settings').select('website_source').maybeSingle();
+      note.classList.toggle('hidden', !(settings && settings.website_source === 'catalog'));
     }
 
     // Update stats dynamically
@@ -1052,22 +666,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (!data || data.length === 0) {
-        console.log("event_types table is empty. Auto-seeding default event types...");
-        const { error: seedErr } = await window.supabaseClient.from('event_types').insert(defaultEventTypes);
-        if (seedErr) {
-          console.error("Error auto-seeding event types:", seedErr.message);
-        } else {
-          const { data: refetched } = await window.supabaseClient
-            .from('event_types')
-            .select('*')
-            .order('created_at', { ascending: true });
-          if (refetched) {
-            loadedEventTypes = refetched;
-          }
-        }
-      } else {
-        loadedEventTypes = data;
+        // Empty table: show the built-in defaults read-only. Data is never
+        // written automatically; add event types explicitly from this screen.
+        console.warn("event_types table is empty; showing built-in defaults (read-only).");
+        loadedEventTypes = defaultEventTypes;
+        populateToneDropdown();
+        renderEventTypesList(true, 'empty');
+        return;
       }
+      loadedEventTypes = data;
 
       populateToneDropdown();
       renderEventTypesList(false);
@@ -1100,13 +707,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function renderEventTypesList(isFallback = false) {
+  function renderEventTypesList(isFallback = false, reason = 'missing') {
     const listContainer = document.getElementById('admin-event-types-list');
     if (!listContainer) return;
 
     let html = '';
 
-    if (isFallback) {
+    if (isFallback && reason === 'empty') {
+      html += `
+        <div style="background: rgba(220, 180, 80, 0.1); border: 1px solid rgba(220, 180, 80, 0.3); padding: 1rem; border-radius: 6px; color: #f0c674; font-size: 0.9rem; margin-bottom: 1rem;">
+          <strong>⚠️ Notice:</strong> The <code>event_types</code> table is empty. Showing built-in defaults (read-only).
+          Add event types with the form below; nothing is written automatically.
+        </div>
+      `;
+    } else if (isFallback) {
       html += `
         <div style="background: rgba(220, 100, 100, 0.1); border: 1px solid rgba(220, 100, 100, 0.3); padding: 1rem; border-radius: 6px; color: #ff8888; font-size: 0.9rem; margin-bottom: 1rem;">
           <strong>⚠️ Notice:</strong> The <code>event_types</code> table was not found in your database. 
@@ -1542,8 +1156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (statusEl) statusEl.textContent = 'Sending…';
 
-      const supabaseUrl = window.supabaseClient.supabaseUrl
-        || 'https://kcatufanwxhcoagyeskf.supabase.co';
+      const supabaseUrl = window.SMARTCAP_ENV.supabaseUrl;
 
       const response = await fetch(
         `${supabaseUrl}/functions/v1/send-push`,

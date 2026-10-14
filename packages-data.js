@@ -166,7 +166,7 @@ window.defaultPackages = {
       title: "Funeral Coverage 2026",
       category: "Event documentation",
       tab: "Photo only",
-      price: "GHS 6,000",
+      price: "GHS 6,500",
       tone: "funeral",
       photo: "assets/photos/funeral-moment.jpg",
       featured: true,
