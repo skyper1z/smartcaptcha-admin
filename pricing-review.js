@@ -27,10 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let canApprove = false;
   let loaded = false;
 
-  const escapeHtml = (value) =>
-    String(value ?? '').replace(/[&<>"']/g, (ch) => (
-      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
-    ));
+  const { escapeHtml, workerFetch, staffProfile } = window.SmartcapWorker;
 
   // Integer pesewas → "GHS 6,500.00" without floating-point arithmetic.
   function formatMinor(minor) {
@@ -78,31 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <span class="pricing-muted">(website said “${escapeHtml(source.original_price)}”)</span>`;
   }
 
-  async function workerFetch(path, init = {}) {
-    const { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (!session) throw new Error('Not signed in');
-    const response = await fetch(`${env.workerUrl}${path}`, {
-      ...init,
-      headers: {
-        ...(init.headers || {}),
-        authorization: `Bearer ${session.access_token}`,
-        'content-type': 'application/json'
-      }
-    });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const error = new Error(body.error || `HTTP ${response.status}`);
-      error.status = response.status;
-      throw error;
-    }
-    return body;
-  }
-
   async function load() {
     statusEl.textContent = 'Loading…';
     list.innerHTML = '';
     try {
-      const me = await workerFetch('/admin/me');
+      const me = await staffProfile();
       canApprove = me.permissions.includes('catalog.approve');
       roleEl.textContent = `Signed in as ${me.staff_role}${canApprove ? '' : ' (view only)'}`;
       if (!me.permissions.includes('catalog.read_internal')) {

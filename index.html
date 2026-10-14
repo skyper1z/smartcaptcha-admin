@@ -54,6 +54,7 @@
         <button class="tab" data-target="announcement">📢 Announcement</button>
         <button class="tab" data-target="settings">Settings / Tools</button>
         <button class="tab" data-target="pricing" id="pricing-tab-btn">💰 Pricing Review</button>
+        <button class="tab" data-target="inbox" id="inbox-tab-btn">💬 WhatsApp Inbox</button>
       </div>
 
       <!-- STATISTICS DASHBOARD -->
@@ -303,6 +304,28 @@
         <div id="pricing-list" class="pricing-list"></div>
       </section>
 
+      <!-- WHATSAPP INBOX TAB (actions via Worker API) -->
+      <section id="inbox-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>WhatsApp Inbox</h2>
+          <button class="button" id="inbox-refresh">Refresh</button>
+        </div>
+        <div id="inbox-automation" class="inbox-automation"></div>
+        <p id="inbox-status" class="status-text"></p>
+        <div class="inbox-layout">
+          <div id="inbox-conversations" class="inbox-conversations" aria-label="Conversations"></div>
+          <div class="inbox-pane">
+            <div id="inbox-thread-header" class="inbox-thread-header"></div>
+            <div id="inbox-thread" class="inbox-thread"><p class="pricing-muted">Select a conversation.</p></div>
+            <form id="inbox-reply-form" class="inbox-reply hidden">
+              <textarea id="inbox-reply-input" rows="2" maxlength="4096" placeholder="Type a reply to the customer…" aria-label="Reply"></textarea>
+              <button type="submit" class="button primary">Send</button>
+            </form>
+            <p id="inbox-reply-note" class="pricing-muted"></p>
+          </div>
+        </div>
+      </section>
+
       <!-- SETTINGS TAB -->
       <section id="settings-tab" class="admin-section hidden">
         <div class="section-heading">
@@ -378,6 +401,8 @@
   <script src="supabase-client.js?v=2"></script>
   <script src="packages-data.js?v=13"></script>
   <script src="admin.js?v=14"></script>
-  <script src="pricing-review.js?v=1"></script>
+  <script src="worker-api.js?v=1"></script>
+  <script src="pricing-review.js?v=2"></script>
+  <script src="inbox.js?v=1"></script>
 </body>
 </html>
