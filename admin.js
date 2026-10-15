@@ -36,6 +36,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   let lastLoadedSessionId = null;
+  // Auth events can arrive before the rest of this handler has declared the
+  // loaders below; data loads wait until setup has finished.
+  let markReady;
+  const ready = new Promise((resolve) => { markReady = resolve; });
 
   async function refreshDashboardData(session) {
     if (!session) return;
@@ -43,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (lastLoadedSessionId === sessionId) return;
     lastLoadedSessionId = sessionId;
 
+    await ready;
     loadGallery();
     loadPackages();
     loadEventTypes();
@@ -71,6 +76,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Logout
   logoutBtn.addEventListener('click', async () => {
+    // Stop this device's staff notifications before the session ends.
+    if (window.SmartcapApp) await window.SmartcapApp.beforeLogout();
     await window.supabaseClient.auth.signOut();
   });
 
@@ -1319,5 +1326,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  markReady();
 });
 
