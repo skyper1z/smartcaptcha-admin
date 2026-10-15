@@ -82,6 +82,38 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch((err) => console.warn('Service worker not registered', err));
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'open' && event.data.url) openTarget(event.data.url);
+      // Phones often show no banner (and play no sound) while the app is open,
+      // so the open app plays its own chime.
+      if (event.data && event.data.type === 'push' && document.visibilityState === 'visible') chime();
+    });
+  }
+
+  // ── Alert chime ──
+  // Browsers only allow sound after the user has touched the page, so the
+  // audio context is created (and resumed) on the first tap.
+  let audio = null;
+  const unlockAudio = () => {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!audio) audio = new Ctx();
+    if (audio.state === 'suspended') audio.resume().catch(() => undefined);
+  };
+  ['pointerdown', 'keydown'].forEach((type) => document.addEventListener(type, unlockAudio, { passive: true }));
+  function chime() {
+    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    if (!audio || audio.state !== 'running') return;
+    const start = audio.currentTime;
+    [[880, 0], [1320, 0.16]].forEach(([freq, offset]) => {
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(0.35, start + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + 0.35);
+      osc.connect(gain).connect(audio.destination);
+      osc.start(start + offset);
+      osc.stop(start + offset + 0.4);
     });
   }
   async function swRegistration() {

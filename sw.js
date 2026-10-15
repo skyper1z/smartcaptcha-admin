@@ -68,6 +68,9 @@ self.addEventListener('push', (event) => {
       body: data.body || 'Something needs your attention.',
       tag: data.tag || 'sc-admin',
       renotify: true,
+      // Play the phone's notification sound (and vibrate on Android).
+      silent: false,
+      vibrate: [200, 100, 200],
       icon: '/assets/icons/icon-192.png',
       badge: '/assets/icons/badge-96.png',
       data: { url: data.url || '/?tab=inbox' }
