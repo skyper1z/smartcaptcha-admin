@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formatPhone(wa) {
     const digits = String(wa || '');
+    // Customers who hide their number appear by WhatsApp user ID only.
+    if (!/^\d+$/.test(digits)) return 'WhatsApp user (number hidden)';
     return /^233\d{9}$/.test(digits)
       ? `+233 ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`
       : `+${digits}`;
