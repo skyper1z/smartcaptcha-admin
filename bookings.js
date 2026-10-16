@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .limit(50);
     const current = select.value;
     select.innerHTML = '<option value="">— No chat linked —</option>' + (data || []).map((c) =>
-      `<option value="${c.id}">${escapeHtml(c.profile_name || 'Customer')} · +${escapeHtml(c.wa_id)}</option>`).join('');
+      `<option value="${c.id}">${escapeHtml(c.profile_name || 'Customer')} · ${/^\d+$/.test(c.wa_id) ? `+${escapeHtml(c.wa_id)}` : 'number hidden'}</option>`).join('');
     select.value = current;
   }
 
