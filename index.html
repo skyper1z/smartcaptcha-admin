@@ -23,7 +23,7 @@
   <title>Smart Captcha Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=10">
-  <link rel="stylesheet" href="admin.css?v=11">
+  <link rel="stylesheet" href="admin.css?v=12">
   <link rel="stylesheet" href="app.css?v=1">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
@@ -79,6 +79,7 @@
         <button class="tab" data-target="inbox" id="inbox-tab-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z"/></svg><span class="tab-label">Chats</span><span id="inbox-badge" class="tab-badge hidden"></span></button>
         <button class="tab" data-target="bookings" id="bookings-tab-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></svg><span class="tab-label">Bookings</span></button>
         <button class="tab" data-target="pricing" id="pricing-tab-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span class="tab-label">Prices</span></button>
+        <button class="tab" data-target="knowledge" id="knowledge-tab-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg><span class="tab-label">Learn</span></button>
         <button class="tab active" data-target="gallery"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span class="tab-label">Gallery</span></button>
         <button class="tab" data-target="packages"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span class="tab-label">Packages</span></button>
         <button class="tab" data-target="announcement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16 8.5a5 5 0 0 1 0 7M19 5.5a9 9 0 0 1 0 13"/></svg><span class="tab-label">Announce</span></button>
@@ -335,6 +336,38 @@
         <div id="pricing-list" class="pricing-list"></div>
       </section>
 
+      <!-- KNOWLEDGE TAB (what the WhatsApp assistant knows; writes via Worker API) -->
+      <section id="knowledge-tab" class="admin-section hidden">
+        <div class="section-heading split">
+          <h2>What the AI knows</h2>
+          <button class="button" id="kb-refresh">Refresh</button>
+        </div>
+        <p class="pricing-muted">Short facts the WhatsApp assistant may use, such as delivery times, travel and what to wear. It uses only <strong>live</strong> facts. When a team member answers a chat and hands it back to the AI, the AI suggests facts here for an admin to approve. Prices never go here: they come only from the Prices tab.</p>
+        <p id="kb-role" class="status-text"></p>
+        <form id="kb-add" class="kb-form">
+          <input name="topic" maxlength="120" required placeholder="Customer question, e.g. Do you travel outside Accra?" aria-label="Customer question">
+          <textarea name="answer" maxlength="1000" rows="2" required placeholder="Answer, e.g. Yes, we cover events anywhere in Ghana." aria-label="Answer"></textarea>
+          <input name="keywords" maxlength="300" placeholder="Search words (optional), e.g. travel Kumasi Takoradi" aria-label="Keywords">
+          <div class="kb-form-actions">
+            <button class="button primary" data-publish>Add &amp; make live</button>
+            <button class="button">Save draft</button>
+          </div>
+        </form>
+        <div class="pricing-filters">
+          <select id="kb-filter" aria-label="Show">
+            <option value="published">Live</option>
+            <option value="suggested">Suggested by AI</option>
+            <option value="draft">Drafts</option>
+            <option value="off">Turned off / rejected</option>
+            <option value="all">All</option>
+          </select>
+          <input type="search" id="kb-search" placeholder="Search" aria-label="Search">
+          <span id="kb-counts" class="pricing-muted"></span>
+        </div>
+        <p id="kb-status" class="status-text" aria-live="polite"></p>
+        <div id="kb-list" class="pricing-list"></div>
+      </section>
+
       <!-- WHATSAPP INBOX TAB (actions via Worker API) -->
       <section id="inbox-tab" class="admin-section hidden">
         <div id="wa-app" class="wa-app">
@@ -519,7 +552,8 @@
   <script src="admin.js?v=16"></script>
   <script src="worker-api.js?v=2"></script>
   <script src="pricing-review.js?v=4"></script>
-  <script src="inbox.js?v=4"></script>
+  <script src="knowledge.js?v=1"></script>
+  <script src="inbox.js?v=5"></script>
   <script src="bookings.js?v=4"></script>
   <script src="app-shell.js?v=1"></script>
 </body>

@@ -870,6 +870,16 @@
   .pricing-row { flex-direction: column; }
 }
 
+/* Knowledge */
+.kb-form { display: grid; gap: 0.5rem; margin: 1rem 0; padding: 1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.kb-form input,
+.kb-form textarea { padding: 0.55rem 0.75rem; border-radius: 8px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); color: var(--paper); font: inherit; min-width: 0; }
+.kb-form textarea { resize: vertical; }
+.kb-form-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.kb-answer { margin: 0.35rem 0 0.5rem; color: var(--paper); white-space: pre-wrap; overflow-wrap: anywhere; }
+.kb-row .pricing-meta a { color: var(--teal); }
+.pricing-badge--suggested { color: var(--gold); border-color: rgba(255, 190, 11, 0.5); }
+
 /* Bookings */
 .bk-items { display: grid; gap: 0.4rem; margin: 0.75rem 0; max-height: 260px; overflow-y: auto; }
 .bk-item { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; }

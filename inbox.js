@@ -633,11 +633,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const takeover = button.dataset.mode === 'takeover';
     if (!takeover && !confirm('Hand this chat back to the AI? It may reply to this customer again.')) return;
     button.disabled = true;
-    act(takeover ? 'You took over' : 'Handed back to AI', () =>
-      workerFetch(`/admin/conversations/${selectedId}/${takeover ? 'takeover' : 'release'}`, {
+    let learned = 0;
+    act(takeover ? 'You took over' : 'Handed back to AI', async () => {
+      const result = await workerFetch(`/admin/conversations/${selectedId}/${takeover ? 'takeover' : 'release'}`, {
         method: 'POST',
         body: JSON.stringify({ reason: takeover ? 'inbox_takeover' : 'inbox_release' })
-      })).catch(() => undefined);
+      });
+      // Releasing asks the AI to suggest facts from the team's replies.
+      learned = Number(result.knowledge_suggestions) || 0;
+    }).then(() => {
+      if (learned) toast(`💡 ${learned} new fact${learned > 1 ? 's' : ''} to review in Learn`);
+    }).catch(() => undefined);
   });
 
   automationEl.addEventListener('change', (event) => {
