@@ -880,6 +880,15 @@
 .kb-row .pricing-meta a { color: var(--teal); }
 .pricing-badge--suggested { color: var(--gold); border-color: rgba(255, 190, 11, 0.5); }
 
+/* Service agreements */
+.bk-contract { margin: 0.45rem 0 0; font-size: 0.85rem; color: var(--gold); }
+.bk-contract--ok { color: var(--teal-bright); }
+.bk-actions { flex-wrap: wrap; justify-content: flex-end; max-width: 22rem; }
+#ct-card summary { cursor: pointer; list-style: revert; }
+#ct-card summary h3 { display: inline; }
+.ct-field { display: grid; gap: 0.25rem; font-size: 0.85rem; color: var(--muted); }
+.pricing-contract { margin-left: 0.4rem; }
+
 /* Bookings */
 .bk-items { display: grid; gap: 0.4rem; margin: 0.75rem 0; max-height: 260px; overflow-y: auto; }
 .bk-item { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; }

@@ -23,7 +23,7 @@
   <title>Smart Captcha Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=10">
-  <link rel="stylesheet" href="admin.css?v=12">
+  <link rel="stylesheet" href="admin.css?v=13">
   <link rel="stylesheet" href="app.css?v=1">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
@@ -436,7 +436,8 @@
           <div id="bk-quote-result" class="bk-quote-result"></div>
           <form id="bk-hold-form" class="bk-hold hidden">
             <input type="date" id="bk-event-date" required aria-label="Event date">
-            <input type="text" id="bk-customer" maxlength="120" placeholder="Customer name" aria-label="Customer name">
+            <input type="text" id="bk-customer" maxlength="120" placeholder="Customer full name" aria-label="Customer name">
+            <input type="text" id="bk-venue" maxlength="300" placeholder="Venue (events need it for the agreement)" aria-label="Event venue">
             <button type="submit" class="button primary">Hold this date</button>
           </form>
         </div>
@@ -460,6 +461,15 @@
           </div>
           <div id="bk-list" class="pricing-list"></div>
         </div>
+
+        <!-- Agreement terms (admins): printed in every event service agreement -->
+        <details class="tool-card hidden" id="ct-card" style="margin-top: 1.5rem;">
+          <summary><h3>Agreement terms</h3></summary>
+          <p class="pricing-muted">Event bookings (weddings, funerals, corporate, concerts, parties, streaming, outdoor shoots) get a PDF service agreement on WhatsApp with the payment details. The customer taps "I agree", and the booking can only be confirmed after that. Studio, portrait and passport shoots do not need one; change which items need one in the Prices tab.</p>
+          <p id="ct-summary" class="status-text"></p>
+          <form id="ct-form" class="kb-form"></form>
+          <p id="ct-status" class="status-text" aria-live="polite"></p>
+        </details>
       </section>
 
       <!-- SETTINGS TAB -->
@@ -550,11 +560,12 @@
   <script src="supabase-client.js?v=3"></script>
   <script src="packages-data.js?v=13"></script>
   <script src="admin.js?v=16"></script>
-  <script src="worker-api.js?v=2"></script>
-  <script src="pricing-review.js?v=4"></script>
+  <script src="worker-api.js?v=3"></script>
+  <script src="pricing-review.js?v=5"></script>
   <script src="knowledge.js?v=1"></script>
   <script src="inbox.js?v=5"></script>
-  <script src="bookings.js?v=4"></script>
+  <script src="bookings.js?v=5"></script>
+  <script src="contracts.js?v=1"></script>
   <script src="app-shell.js?v=1"></script>
 </body>
 </html>
