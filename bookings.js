@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const { escapeHtml, workerFetch, staffProfile, parseCedis } = window.SmartcapWorker;
+  const { escapeHtml, workerFetch, staffProfile, parseCedis, openWorkerPdf } = window.SmartcapWorker;
   const el = (id) => document.getElementById(id);
   const statusEl = el('bookings-status');
   let me = null;
@@ -37,7 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
     hold_expired: 'The hold expired before payment was recorded.',
     duplicate_transaction_reference: 'That transaction reference was already used.',
     amount_below_deposit: 'The approved amount does not cover the deposit.',
-    reason_required: 'A reason is required.'
+    reason_required: 'A reason is required.',
+    contract_not_accepted: 'The customer has not accepted the service agreement yet. The booking can be confirmed once they tap "I agree".',
+    contract_settings_not_approved: 'The agreement terms are not approved yet (see "Agreement terms" below).',
+    contract_details_required: 'Add the customer\'s full name and the venue first (Agreement details).',
+    contract_already_accepted: 'The customer has already accepted the agreement.',
+    invalid_contract_details: 'Enter the customer\'s full name and the venue.',
+    outside_service_window: 'The customer has not messaged in the last 24 hours, so WhatsApp will not deliver this.'
   };
   const explain = (err) => ERROR_TEXT[err.message] || err.message;
 
@@ -118,14 +124,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!lastQuote) return;
     const eventDate = el('bk-event-date').value;
     if (!eventDate) return;
-    run('Holding date', () => workerFetch('/admin/bookings', {
-      method: 'POST',
-      body: JSON.stringify({
-        quote_id: lastQuote.quote_id,
-        event_date: eventDate,
-        customer_name: el('bk-customer').value.trim() || undefined
-      })
-    })).then((booking) => {
+    const customerName = el('bk-customer').value.trim();
+    const venue = el('bk-venue').value.trim();
+    run('Holding date', async () => {
+      const booking = await workerFetch('/admin/bookings', {
+        method: 'POST',
+        body: JSON.stringify({ quote_id: lastQuote.quote_id, event_date: eventDate, customer_name: customerName || undefined })
+      });
+      // Events need the name and venue for their service agreement.
+      if (customerName && venue) {
+        await workerFetch(`/admin/bookings/${booking.id}/contract-details`, {
+          method: 'POST', body: JSON.stringify({ customer_name: customerName, event_location: venue })
+        });
+      }
+      return booking;
+    }).then((booking) => {
       if (booking) {
         statusEl.textContent = `Date held. Payment reference ${booking.payment_reference}.`;
         el('bk-hold-form').reset();
@@ -140,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadBookings() {
     let query = window.supabaseClient
       .from('bookings')
-      .select('id, event_date, status, customer_name, total_minor, deposit_due_minor, payment_reference, confirmation_code, hold_expires_at, conversation_id')
+      .select('id, event_date, status, customer_name, event_location, contract_required, total_minor, deposit_due_minor, payment_reference, confirmation_code, hold_expires_at, conversation_id, contracts(id, status, contract_number, accepted_at, reminded_at, created_at)')
       .order('event_date', { ascending: true })
       .limit(100);
     const filter = el('bk-filter').value;
@@ -150,7 +163,22 @@ document.addEventListener('DOMContentLoaded', () => {
       el('bk-list').innerHTML = `<p class="status-text">${escapeHtml(error.message)}</p>`;
       return;
     }
-    el('bk-list').innerHTML = (data || []).map((b) => `
+    el('bk-list').innerHTML = (data || []).map((b) => {
+      const open = b.status === 'held' || b.status === 'payment_submitted';
+      const current = (b.contracts || []).filter((c) => c.status !== 'superseded').sort((x, y) => y.id - x.id)[0];
+      const agreement = !b.contract_required ? ''
+        : current && current.status === 'accepted'
+          ? `<p class="bk-contract bk-contract--ok">📝 Agreement ${escapeHtml(current.contract_number)} accepted ${escapeHtml(new Date(current.accepted_at).toLocaleString())}</p>`
+          : current
+            ? `<p class="bk-contract">📝 Agreement ${escapeHtml(current.contract_number)} sent ${escapeHtml(new Date(current.created_at).toLocaleString())} · <strong>waiting for "I agree"</strong>${current.reminded_at ? ' · reminder sent' : ''}</p>`
+            : `<p class="bk-contract">📝 Agreement needed · <strong>not sent yet</strong>${b.event_location ? '' : ' · venue missing'}</p>`;
+      const agreementActions = !b.contract_required ? '' : [
+        open && can('bookings.hold') ? `<button class="button" data-details="${b.id}" data-name="${escapeHtml(b.customer_name || '')}" data-venue="${escapeHtml(b.event_location || '')}">Agreement details</button>` : '',
+        open && b.conversation_id && can('conversations.reply') && (!current || current.status !== 'accepted')
+          ? `<button class="button" data-contract="${b.id}" data-resend="${current ? 1 : 0}">${current ? 'Resend agreement' : 'Send agreement'}</button>` : '',
+        current || open ? `<button class="button" data-pdf="${b.id}">View agreement</button>` : ''
+      ].join('');
+      return `
       <article class="pricing-row">
         <div class="pricing-main">
           <h3>${escapeHtml(new Date(`${b.event_date}T00:00:00`).toDateString())} · ${escapeHtml(b.customer_name || 'Customer')}</h3>
@@ -161,17 +189,50 @@ document.addEventListener('DOMContentLoaded', () => {
             ${b.confirmation_code ? ` · code <strong>${escapeHtml(b.confirmation_code)}</strong>` : ''}
             ${b.status === 'held' ? ` · hold expires ${escapeHtml(new Date(b.hold_expires_at).toLocaleString())}` : ''}
             ${b.conversation_id ? ' · 💬 chat linked' : ' · no WhatsApp chat linked'}
+            ${b.event_location ? ` · 📍 ${escapeHtml(b.event_location)}` : ''}
           </p>
+          ${agreement}
         </div>
-        <div class="pricing-actions">
-          ${(b.status === 'held' || b.status === 'payment_submitted') && b.conversation_id && can('conversations.reply') ? `<button class="button primary" data-instructions="${b.id}">Send payment details</button>` : ''}
-          ${(b.status === 'held' || b.status === 'payment_submitted') && can('payments.submit') ? `<button class="button" data-pay="${b.id}" data-deposit="${b.deposit_due_minor}">Record payment</button>` : ''}
+        <div class="pricing-actions bk-actions">
+          ${open && b.conversation_id && can('conversations.reply') ? `<button class="button primary" data-instructions="${b.id}">Send payment details</button>` : ''}
+          ${open && can('payments.submit') ? `<button class="button" data-pay="${b.id}" data-deposit="${b.deposit_due_minor}">Record payment</button>` : ''}
+          ${agreementActions}
           ${['held', 'payment_submitted', 'confirmed'].includes(b.status) && can('bookings.cancel') ? `<button class="button danger" data-cancel="${b.id}">Cancel</button>` : ''}
         </div>
-      </article>`).join('') || '<p class="pricing-muted">No bookings.</p>';
+      </article>`;
+    }).join('') || '<p class="pricing-muted">No bookings.</p>';
   }
 
   el('bk-list').addEventListener('click', (event) => {
+    const details = event.target.closest('[data-details]');
+    if (details) {
+      const name = prompt('Customer\'s full name (as it should appear on the agreement):', details.dataset.name);
+      if (name === null) return;
+      const venue = prompt('Event venue / address:', details.dataset.venue);
+      if (venue === null) return;
+      run('Saving agreement details', () => workerFetch(`/admin/bookings/${details.dataset.details}/contract-details`, {
+        method: 'POST', body: JSON.stringify({ customer_name: name.trim(), event_location: venue.trim() })
+      }));
+      return;
+    }
+    const contract = event.target.closest('[data-contract]');
+    if (contract) {
+      const resend = contract.dataset.resend === '1';
+      if (!confirm(resend
+        ? 'Send a fresh copy of the service agreement? It replaces the one not yet accepted.'
+        : 'Send the service agreement (PDF) to this customer on WhatsApp? They accept it by tapping "I agree".')) return;
+      contract.disabled = true;
+      run('Sending agreement', () => workerFetch(`/admin/bookings/${contract.dataset.contract}/contract`, { method: 'POST', body: '{}' }))
+        .then((result) => {
+          if (result) statusEl.textContent = `Agreement ${result.contractNumber} sent on WhatsApp.`;
+        });
+      return;
+    }
+    const pdf = event.target.closest('[data-pdf]');
+    if (pdf) {
+      openWorkerPdf(`/admin/bookings/${pdf.dataset.pdf}/contract.pdf`).catch((err) => { statusEl.textContent = `Could not open the agreement: ${explain(err)}`; });
+      return;
+    }
     const instructions = event.target.closest('[data-instructions]');
     if (instructions) {
       if (!confirm('Send the deposit amount, payment reference and MoMo/bank details to this customer on WhatsApp? This takes the chat out of AI mode.')) return;
@@ -179,7 +240,12 @@ document.addEventListener('DOMContentLoaded', () => {
       run('Sending payment details', () => workerFetch(`/admin/bookings/${instructions.dataset.instructions}/payment-instructions`, {
         method: 'POST', body: JSON.stringify({ client_message_id: crypto.randomUUID() })
       })).then((result) => {
-        if (result) statusEl.textContent = 'Payment details sent on WhatsApp.';
+        if (!result) return;
+        const contract = result.contract || {};
+        statusEl.textContent = 'Payment details sent on WhatsApp.' + (
+          contract.sendStatus === 'sent' ? ` Service agreement ${contract.contractNumber} sent too.`
+            : contract.sendStatus === 'not_sent' || contract.sendStatus === 'failed' ? ` The service agreement was NOT sent: ${explain({ message: contract.error || 'unknown error' })}`
+              : '');
       });
       return;
     }

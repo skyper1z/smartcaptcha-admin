@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let depositRules = [];
   let canApprove = false;
   let canEdit = false;
+  let canContracts = false;
   let editingItemId = null;
   let loaded = false;
 
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const me = await staffProfile();
       canApprove = me.permissions.includes('catalog.approve');
       canEdit = me.permissions.includes('catalog.edit');
+      canContracts = me.permissions.includes('contracts.manage');
       roleEl.textContent = `Signed in as ${me.staff_role}${canApprove ? '' : ' (view only)'}`;
       if (!me.permissions.includes('catalog.read_internal')) {
         statusEl.textContent = 'Your role cannot view the internal catalog.';
@@ -104,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const [{ data, error }, deposits] = await Promise.all([
       window.supabaseClient
         .from('catalog_items')
-        .select('id, code, item_type, title, category, tone, tab, review_status, metadata, source, display_order, catalog_price_versions(id, pricing_model, amount_minor, max_amount_minor, percentage_basis_points, unit, display_price, review_status, effective_from)')
+        .select('id, code, item_type, title, category, tone, tab, review_status, metadata, source, display_order, contract_required, catalog_price_versions(id, pricing_model, amount_minor, max_amount_minor, percentage_basis_points, unit, display_price, review_status, effective_from)')
         .order('display_order', { ascending: true }),
       window.supabaseClient
         .from('deposit_rules')
@@ -283,7 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<button class="button primary" data-action="approved" data-price="${price.id}">Approve</button>
            <button class="button danger" data-action="rejected" data-price="${price.id}">Reject</button>`
         : `<span class="pricing-badge pricing-badge--${escapeHtml(price.review_status)}">${escapeHtml(price.review_status.replace('_', ' '))}</span>`)
-        + (canEdit ? ` <button class="button" data-edit="${item.id}">Edit price</button>` : '');
+        + (canEdit ? ` <button class="button" data-edit="${item.id}">Edit price</button>` : '')
+        + (canContracts ? ` <button class="button" data-contract-toggle="${escapeHtml(item.code)}" data-required="${item.contract_required ? 1 : 0}">${item.contract_required ? 'Agreement: on' : 'Agreement: off'}</button>` : '');
       const priceLine = live && price.review_status === 'pending_review' && live.id !== price.id
         ? `Live: ${escapeHtml(describePrice(live))} → <strong>Proposed: ${escapeHtml(describePrice(price))}</strong>`
         : escapeHtml(describePrice(price));
@@ -300,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="pricing-muted">· deposit ${escapeHtml(depositFor(item))}${item.tone ? ` (${escapeHtml(item.tone)})` : ''}</span>
             </p>
             ${flags.map((flag) => `<span class="pricing-flag">${escapeHtml(flag)}</span>`).join(' ')}
+            ${item.contract_required ? '<span class="pricing-flag pricing-contract">📝 Needs service agreement</span>' : ''}
             ${notes.length ? `<ul class="pricing-notes">${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}</ul>` : ''}
             <p class="pricing-source">Source: ${sourceLink(item.source)}</p>
           </div>
@@ -308,6 +312,27 @@ document.addEventListener('DOMContentLoaded', () => {
         ${editingItemId === item.id ? editForm(item, live || price) : ''}`;
     }).join('');
   }
+
+  list.addEventListener('click', async (event) => {
+    const toggle = event.target.closest('[data-contract-toggle]');
+    if (!toggle) return;
+    const required = toggle.dataset.required !== '1';
+    if (!confirm(required
+      ? 'Require a service agreement for new bookings of this item?'
+      : 'Stop requiring a service agreement for new bookings of this item? Existing bookings keep their requirement.')) return;
+    toggle.disabled = true;
+    try {
+      await workerFetch(`/admin/catalog/items/${encodeURIComponent(toggle.dataset.contractToggle)}/contract-required`, {
+        method: 'POST', body: JSON.stringify({ required })
+      });
+      const item = items.find((candidate) => candidate.code === toggle.dataset.contractToggle);
+      if (item) item.contract_required = required;
+      render();
+    } catch (err) {
+      statusEl.textContent = `Could not change the agreement setting: ${err.message}`;
+      toggle.disabled = false;
+    }
+  });
 
   list.addEventListener('click', (event) => {
     const editButton = event.target.closest('[data-edit]');

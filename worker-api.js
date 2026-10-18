@@ -29,6 +29,30 @@
     return body;
   }
 
+  // Opens a PDF the Worker generates (it needs the sign-in token, so it is
+  // fetched here and shown from memory). The tab opens first so phones do
+  // not block it as a pop-up.
+  async function openWorkerPdf(path) {
+    const tab = window.open('', '_blank');
+    try {
+      const env = window.SMARTCAP_ENV;
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) throw new Error('Not signed in');
+      const response = await fetch(`${env.workerUrl}${path}`, { headers: { authorization: `Bearer ${session.access_token}` } });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || `HTTP ${response.status}`);
+      }
+      const url = URL.createObjectURL(await response.blob());
+      if (tab) tab.location.href = url;
+      else window.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      if (tab) tab.close();
+      throw error;
+    }
+  }
+
   // "4550", "4,550" or "4550.50" (cedis) → integer pesewas; null if invalid.
   function parseCedis(text) {
     const value = String(text).trim();
@@ -55,5 +79,5 @@
     if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') mePromise = null;
   });
 
-  window.SmartcapWorker = Object.freeze({ escapeHtml, workerFetch, staffProfile, parseCedis });
+  window.SmartcapWorker = Object.freeze({ escapeHtml, workerFetch, staffProfile, parseCedis, openWorkerPdf });
 })();
